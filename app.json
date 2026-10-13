@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Threadflank",
+    "slug": "threadflank",
+    "scheme": "threadflank",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#010214",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.threadflank.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": [
+          "whatsapp"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.threadflank.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b090d",
+        "foregroundImage": "./assets/icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-image",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#0b090d"
+        }
+      ],
+      "expo-sharing",
+      "expo-video",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Threadflank uses your photos to add selfies, wardrobe items and outfits to try on.",
+          "cameraPermission": "Threadflank uses the camera to take your selfie and photograph clothes for your wardrobe.",
+          "microphonePermission": false
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,37 @@
+/**
+ * React Query keys, scoped by token so switching accounts never shows another user's cache.
+ * (The whole cache is also cleared on sign-out.)
+ */
+export const queryKeys = {
+  wallet: (token: string | null) => ["wallet", token] as const,
+  profile: (token: string | null) => ["profile", token] as const,
+  twin: (token: string | null) => ["twin", token] as const,
+  wardrobe: (token: string | null) => ["wardrobe", token] as const,
+  analytics: (token: string | null) => ["wardrobe-analytics", token] as const,
+  looks: (token: string | null) => ["looks", token] as const,
+  circle: (token: string | null) => ["circle", token] as const,
+  borrows: (token: string | null) => ["borrows", token] as const,
+  memberWardrobe: (token: string | null, userId: string) => ["member-wardrobe", token, userId] as const,
+  scenes: ["scenes"] as const,
+  brands: (token: string | null) => ["brands", token] as const,
+  posts: (token: string | null, category: string) => ["posts", token, category] as const,
+  post: (token: string | null, id: string) => ["post", token, id] as const,
+  comments: (token: string | null, id: string) => ["comments", token, id] as const,
+  stories: (token: string | null) => ["stories", token] as const,
+  events: (token: string | null) => ["events", token] as const,
+  event: (token: string | null, id: string) => ["event", token, id] as const,
+  notifications: (token: string | null) => ["notifications", token] as const,
+  conversations: (token: string | null) => ["conversations", token] as const,
+  groups: (token: string | null) => ["groups", token] as const,
+  messages: (token: string | null, roomId: string) => ["messages", token, roomId] as const,
+  friends: (token: string | null) => ["friends", token] as const,
+  friendRequests: (token: string | null) => ["friend-requests", token] as const,
+  suggestions: (token: string | null) => ["friend-suggestions", token] as const,
+  stylistMe: (token: string | null) => ["stylist-me", token] as const,
+  stylistQueue: (token: string | null) => ["stylist-queue", token] as const,
+  stylistComments: (token: string | null, lookId: string) => ["stylist-comments", token, lookId] as const,
+  aiUsage: (token: string | null) => ["ai-usage", token] as const,
+  catalogue: ["catalogue"] as const,
+  creditHistory: (token: string | null) => ["credit-history", token] as const,
+  cms: (key: string) => ["cms", key] as const,
+};
