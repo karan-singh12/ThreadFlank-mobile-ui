@@ -31,30 +31,27 @@ import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Sheet } from "@/components/ui/Sheet";
 import {
-  ALL_BRANDS_DIRECTORY,
-  DISCOVER_SHELVES,
-  TOP_BIDDING_WINNERS,
   type BrandCatalogItem,
   type BrandDetail,
   type ShelfOutfit,
 } from "@/data/discover-shelves";
 import { AppHeader } from "@/features/app/AppHeader";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { useDynamicDiscover } from "@/features/discover/dynamicData";
 import { colors, radius, TAB_BAR_HEIGHT } from "@/theme";
-
-const CATEGORIES = [
-  { id: "all", label: "All" },
-  { id: "trending", label: "Most Draped" },
-  { id: "interest", label: "For You" },
-  { id: "promoted", label: "Promoted" },
-  { id: "launches", label: "Fresh Drops" },
-  { id: "shared", label: "Shared" },
-  { id: "festive", label: "Wedding" },
-  { id: "party", label: "Cocktail" },
-];
 
 export default function DiscoverScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { token } = useAuth();
+
+  const {
+    shelves: dynamicShelves,
+    biddingWinners,
+    brandsDirectory,
+    categories,
+    refetch,
+  } = useDynamicDiscover(token);
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -64,7 +61,7 @@ export default function DiscoverScreen() {
   const [liked, setLiked] = useState(false);
 
   const filteredShelves = useMemo(() => {
-    return DISCOVER_SHELVES.filter((shelf) => {
+    return dynamicShelves.filter((shelf) => {
       const matchesTab = activeCategory === "all" || shelf.category === activeCategory;
       const matchesSearch =
         !search ||
@@ -76,7 +73,7 @@ export default function DiscoverScreen() {
         );
       return matchesTab && matchesSearch;
     });
-  }, [activeCategory, search]);
+  }, [dynamicShelves, activeCategory, search]);
 
   const onShare = async (outfit: ShelfOutfit) => {
     try {
@@ -97,9 +94,13 @@ export default function DiscoverScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
+            onRefresh={async () => {
               setRefreshing(true);
-              setTimeout(() => setRefreshing(false), 700);
+              try {
+                await refetch();
+              } finally {
+                setRefreshing(false);
+              }
             }}
             tintColor={colors.accentBright}
           />
@@ -127,11 +128,13 @@ export default function DiscoverScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.brandChipsTrack}
           >
-            {TOP_BIDDING_WINNERS.map((brand) => (
+            {biddingWinners.map((brand) => (
               <Pressable
                 key={brand.id}
                 onPress={() => {
-                  const match = ALL_BRANDS_DIRECTORY.find((b) => b.id === brand.id);
+                  const match = brandsDirectory.find(
+                    (b) => b.id === brand.id || b.slug === brand.slug
+                  );
                   if (match) setSelectedBrand(match);
                 }}
                 style={styles.brandChip}
@@ -173,7 +176,7 @@ export default function DiscoverScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.pillsTrack}
           >
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const active = activeCategory === cat.id;
               return (
                 <Pressable

@@ -43,6 +43,7 @@ export interface ApiBrandPost {
   taggedProducts: ApiTaggedProduct[] | null;
   likesCount: number;
   commentsCount: number;
+  sharesCount?: number;
   likedByMe: boolean;
   /** Saved to the viewer's Saved looks. */
   savedByMe?: boolean;

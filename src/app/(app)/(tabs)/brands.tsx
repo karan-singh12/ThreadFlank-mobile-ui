@@ -23,33 +23,36 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Sheet } from "@/components/ui/Sheet";
-import { ALL_BRANDS_DIRECTORY, type BrandDetail } from "@/data/discover-shelves";
+import { type BrandDetail } from "@/data/discover-shelves";
 import { AppHeader } from "@/features/app/AppHeader";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { useDynamicDiscover } from "@/features/discover/dynamicData";
 import { colors, radius, TAB_BAR_HEIGHT } from "@/theme";
-
-const CATEGORIES = [
-  "All Maisons",
-  "Ethnic Luxury",
-  "Haute Couture",
-  "Contemporary Fusion",
-  "Modern Pret",
-  "Sustainable Handloom",
-  "Bridal Atelier",
-];
 
 export default function BrandsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { token } = useAuth();
+
+  const { brandsDirectory, refetch } = useDynamicDiscover(token);
 
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("All Maisons");
   const [refreshing, setRefreshing] = useState(false);
   const [activeBrand, setActiveBrand] = useState<BrandDetail | null>(null);
 
-  const featuredMaison = ALL_BRANDS_DIRECTORY[0];
+  const featuredMaison = brandsDirectory[0];
+
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    brandsDirectory.forEach((b) => {
+      if (b.category) cats.add(b.category);
+    });
+    return ["All Maisons", ...Array.from(cats)];
+  }, [brandsDirectory]);
 
   const filtered = useMemo(() => {
-    return ALL_BRANDS_DIRECTORY.filter((b) => {
+    return brandsDirectory.filter((b) => {
       const matchesSearch =
         !search ||
         b.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -57,7 +60,7 @@ export default function BrandsScreen() {
       const matchesCat = selectedCat === "All Maisons" || b.category === selectedCat;
       return matchesSearch && matchesCat;
     });
-  }, [search, selectedCat]);
+  }, [brandsDirectory, search, selectedCat]);
 
   return (
     <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
@@ -69,9 +72,13 @@ export default function BrandsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
+            onRefresh={async () => {
               setRefreshing(true);
-              setTimeout(() => setRefreshing(false), 700);
+              try {
+                await refetch();
+              } finally {
+                setRefreshing(false);
+              }
             }}
             tintColor={colors.accentBright}
           />
@@ -150,7 +157,7 @@ export default function BrandsScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.pillsRow}
             >
-              {CATEGORIES.map((cat) => {
+              {categories.map((cat) => {
                 const active = selectedCat === cat;
                 return (
                   <Pressable
