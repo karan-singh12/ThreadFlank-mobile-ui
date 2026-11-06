@@ -11,9 +11,10 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.canvas }, animation: "fade", lazy: true }}
     >
       <Tabs.Screen name="discover" />
+      <Tabs.Screen name="brands" />
       <Tabs.Screen name="drape" />
       <Tabs.Screen name="wardrobe" />
-      <Tabs.Screen name="saved" />
+      <Tabs.Screen name="saved" options={{ href: null }} />
       <Tabs.Screen name="messages" />
     </Tabs>
   );

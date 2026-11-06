@@ -8,6 +8,7 @@ export const brand = {
 
 export type NavIcon =
   | "compass"
+  | "store"
   | "shirt"
   | "layers"
   | "message"
@@ -28,13 +29,14 @@ export const appNav = {
   /** Bottom tab bar. */
   tabs: [
     { id: "discover", label: "Discover", icon: "compass" },
+    { id: "brands", label: "Brands", icon: "store" },
     { id: "drape", label: "Drape", icon: "shirt" },
     { id: "wardrobe", label: "Wardrobe", icon: "layers" },
-    { id: "saved", label: "Saved", icon: "bookmark" },
     { id: "messages", label: "Messages", icon: "message" },
   ] as const,
   /** Account menu entries for the signed-in person. */
   account: [
+    { id: "saved", label: "Saved looks", href: "/saved", icon: "bookmark" },
     { id: "profile", label: "Profile", href: "/profile", icon: "user" },
     { id: "circle", label: "Twin circle", href: "/profile?tab=circle", icon: "users" },
     { id: "events", label: "Events", href: "/events", icon: "calendar" },

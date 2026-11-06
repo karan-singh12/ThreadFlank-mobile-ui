@@ -13,6 +13,7 @@ import {
   Scroll,
   ShieldAlert,
   Shirt,
+  Store,
   User,
   Users,
   type LucideIcon,
@@ -21,6 +22,7 @@ import type { NavIcon } from "@/data/app-content";
 
 export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   compass: Compass,
+  store: Store,
   shirt: Shirt,
   layers: Layers,
   message: MessageCircle,
