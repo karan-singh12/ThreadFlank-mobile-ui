@@ -22,6 +22,6 @@ export function LogoMark({ size = 36, halo = false, style }: { size?: number; ha
 }
 
 const styles = StyleSheet.create({
-  halo: { backgroundColor: "rgba(102,69,235,0.25)", shadowColor: "#6645eb", shadowOpacity: 0.8, shadowRadius: 24, shadowOffset: { width: 0, height: 0 } },
+  halo: { backgroundColor: "rgba(102,69,235,0.18)", shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
   ring: { borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(255,255,255,0.15)" },
 });

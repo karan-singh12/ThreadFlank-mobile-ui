@@ -75,7 +75,7 @@ export function Button({
         styles.base,
         { height: HEIGHT[size] },
         fullWidth && styles.full,
-        variant === "primary" && shadows.primaryGlow,
+        variant === "primary" && styles.primaryShadow,
         variant === "ghost" && styles.ghost,
         variant === "danger" && styles.danger,
         variant === "glass" && styles.glass,
@@ -99,15 +99,22 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.pill, overflow: "visible", alignSelf: "flex-start" },
+  base: { borderRadius: radius.pill, overflow: "hidden", alignSelf: "flex-start" },
   full: { alignSelf: "stretch" },
+  primaryShadow: {
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
   fill: { flex: 1, borderRadius: radius.pill, justifyContent: "center" },
-  primaryRim: { borderWidth: 1, borderColor: "rgba(127,98,246,0.45)" },
-  lightRim: { borderWidth: 1, borderColor: "rgba(255,255,255,0.6)" },
+  primaryRim: { borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
+  lightRim: { borderWidth: 1, borderColor: "rgba(255,255,255,0.9)" },
   row: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   ghost: { borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", justifyContent: "center" },
   danger: { borderWidth: 1, borderColor: "rgba(248,113,113,0.3)", justifyContent: "center" },
-  glass: { borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.08)", justifyContent: "center" },
-  disabled: { opacity: 0.5 },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
+  glass: { borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.06)", justifyContent: "center" },
+  disabled: { opacity: 0.45 },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.98 }] },
 });

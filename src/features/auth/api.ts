@@ -1,6 +1,6 @@
 import { apiRequest } from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
-import type { AuthSession, AuthUser, ForgotPasswordPayload, LoginPayload, ResetPasswordPayload, SignupPayload } from "./types";
+import type { AuthSession, AuthUser, ForgotPasswordPayload, LoginPayload, ResetPasswordPayload, SignupPayload, VerifyEmailPayload } from "./types";
 
 export const authApi = {
   async login(payload: LoginPayload) {
@@ -8,7 +8,17 @@ export const authApi = {
   },
 
   async signup(payload: SignupPayload) {
-    return (await apiRequest<AuthSession>(ENDPOINTS.auth.signup, { method: "POST", body: payload })).data;
+    // A session, or (when email verification is on) only a flag: the emailed link must be used first.
+    return (await apiRequest<AuthSession | { requiresVerification: true; user: AuthUser }>(ENDPOINTS.auth.signup, { method: "POST", body: payload })).data;
+  },
+
+  async verifyEmail(payload: VerifyEmailPayload) {
+    return (await apiRequest<null>(ENDPOINTS.auth.verifyEmail, { method: "POST", body: payload })).message;
+  },
+
+  /** Resolves with the server's message; the backend never reveals whether the email exists. */
+  async resendVerification(payload: ForgotPasswordPayload) {
+    return (await apiRequest<null>(ENDPOINTS.auth.resendVerification, { method: "POST", body: payload })).message;
   },
 
   /** Resolves with the server's message; the backend never reveals whether the email exists. */

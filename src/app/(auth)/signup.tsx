@@ -11,6 +11,7 @@ import { Notice } from "@/components/ui/Notice";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { PasswordField, TextField } from "@/components/ui/TextField";
 import { authContent } from "@/data/auth-content";
+import { authApi } from "@/features/auth/api";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { AuthScaffold } from "@/features/auth/components/AuthScaffold";
 import { applyServerErrors } from "@/features/auth/errors";
@@ -23,6 +24,8 @@ const copy = authContent.signup;
 export default function SignupScreen() {
   const { signup } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -42,7 +45,7 @@ export default function SignupScreen() {
   const onSubmit = handleSubmit(async ({ username, email, password: pw }) => {
     setFormError(null);
     try {
-      await signup({ username, email, password: pw });
+      if (await signup({ username, email, password: pw })) setSentTo(email);
     } catch (error) {
       // The backend reports a taken email as a plain 400 message; attach it to the field.
       if (error instanceof ApiError && error.status === 400 && /email/i.test(error.message) && /registered|exists/i.test(error.message)) {
@@ -52,6 +55,50 @@ export default function SignupScreen() {
       setFormError(applyServerErrors(error, setError, ["username", "email", "password"]) || null);
     }
   });
+
+  if (sentTo) {
+    const notice = authContent.checkEmail;
+    const [before, after] = notice.description.split("{email}");
+    return (
+      <AuthScaffold
+        title={notice.title}
+        description={
+          <Text style={styles.terms}>
+            {before}
+            <Text style={styles.link}>{sentTo}</Text>
+            {after}
+          </Text>
+        }
+      >
+        <View style={styles.form}>
+          {resendState === "sent" && <Notice tone="success">{notice.resent}</Notice>}
+          <Button
+            variant="glass"
+            size="lg"
+            fullWidth
+            loading={resendState === "sending"}
+            loadingText={notice.resending}
+            onPress={async () => {
+              setResendState("sending");
+              try {
+                await authApi.resendVerification({ email: sentTo });
+                setResendState("sent");
+              } catch {
+                setResendState("idle");
+              }
+            }}
+          >
+            {notice.resend}
+          </Button>
+          <Link href="/login" replace style={styles.back}>
+            <AppText variant="sm" color={colors.muted}>
+              {notice.back}
+            </AppText>
+          </Link>
+        </View>
+      </AuthScaffold>
+    );
+  }
 
   return (
     <AuthScaffold title={copy.title} description={copy.description}>
@@ -211,5 +258,6 @@ const styles = StyleSheet.create({
   terms: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 21, color: colors.subtle },
   link: { color: colors.ink, fontFamily: fonts.medium, textDecorationLine: "underline" },
   submit: { marginTop: 8 },
+  back: { alignSelf: "center", marginTop: 12 },
   switchRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 32 },
 });

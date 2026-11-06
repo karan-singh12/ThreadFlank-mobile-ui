@@ -5,6 +5,8 @@ export const ENDPOINTS = {
     signup: "/user/auth/signup",
     forgotPassword: "/user/auth/forgot-password",
     resetPassword: "/user/auth/reset-password",
+    verifyEmail: "/user/auth/verify-email",
+    resendVerification: "/user/auth/resend-verification",
   },
   users: {
     profile: "/users/profile",

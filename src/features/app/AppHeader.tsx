@@ -6,6 +6,7 @@ import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { IconButton } from "@/components/ui/IconButton";
 import { LogoMark } from "@/components/ui/LogoMark";
+import { Wordmark } from "@/components/ui/Wordmark";
 import { brand } from "@/data/app-content";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { displayName } from "@/features/auth/types";
@@ -23,7 +24,7 @@ export function AppHeader() {
     <View style={styles.bar}>
       <Pressable onPress={() => router.navigate("/discover")} style={styles.brand} accessibilityRole="link" accessibilityLabel={`${brand.name} home`}>
         <LogoMark size={34} />
-        <AppText variant="title">{brand.name}</AppText>
+        <Wordmark />
       </Pressable>
 
       <View style={styles.actions}>

@@ -5,6 +5,7 @@ import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { GradientText } from "@/components/ui/GradientText";
 import { LogoMark } from "@/components/ui/LogoMark";
+import { Wordmark } from "@/components/ui/Wordmark";
 import { brand } from "@/data/app-content";
 import { authContent } from "@/data/auth-content";
 import { colors, GUTTER } from "@/theme";
@@ -17,7 +18,7 @@ export function AuthScaffold({ title, description, children, header, badge }: Pr
     <Screen background="auth" keyboard padded={false} contentStyle={styles.content}>
       <View style={styles.brandRow}>
         <LogoMark size={36} />
-        <AppText variant="title">{brand.name}</AppText>
+        <Wordmark />
       </View>
 
       <View style={styles.main}>

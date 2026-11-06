@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { PasswordField, TextField } from "@/components/ui/TextField";
 import { authContent } from "@/data/auth-content";
+import { authApi } from "@/features/auth/api";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { ApiError } from "@/lib/api/client";
 import { AuthScaffold } from "@/features/auth/components/AuthScaffold";
 import { applyServerErrors } from "@/features/auth/errors";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
@@ -22,6 +24,8 @@ export default function LoginScreen() {
   const params = useLocalSearchParams<{ reset?: string }>();
   const justReset = params.reset === "success";
   const [formError, setFormError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
   const passwordRef = useRef<TextInput>(null);
 
   const {
@@ -33,10 +37,17 @@ export default function LoginScreen() {
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
+    setUnverifiedEmail(null);
+    setResent(false);
     try {
       await login(values);
       // The protected-route guard switches to the app once the session is set.
     } catch (error) {
+      // The backend answers 403 when the password is right but the email isn't verified yet.
+      if (error instanceof ApiError && error.status === 403) {
+        setUnverifiedEmail(values.email);
+        return;
+      }
       setFormError(applyServerErrors(error, setError, ["email", "password"], { 401: copy.invalidCredentials }) || null);
     }
   });
@@ -46,6 +57,21 @@ export default function LoginScreen() {
       <View style={styles.form}>
         {justReset && !formError && <Notice tone="success">{authContent.resetPassword.doneDescription}</Notice>}
         {formError && <Notice tone="error">{formError}</Notice>}
+        {unverifiedEmail && (
+          <>
+            <Notice tone={resent ? "success" : "error"}>{resent ? authContent.checkEmail.resent : authContent.checkEmail.notVerified}</Notice>
+            {!resent && (
+              <Button
+                variant="glass"
+                size="lg"
+                fullWidth
+                onPress={() => authApi.resendVerification({ email: unverifiedEmail }).then(() => setResent(true), () => undefined)}
+              >
+                {authContent.checkEmail.resend}
+              </Button>
+            )}
+          </>
+        )}
 
         <Controller
           control={control}

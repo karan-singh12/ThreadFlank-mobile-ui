@@ -23,6 +23,7 @@ export type LoginPayload = { email: string; password: string };
 export type SignupPayload = { email: string; password: string; username: string };
 export type ForgotPasswordPayload = { email: string };
 export type ResetPasswordPayload = { token: string; newPassword: string };
+export type VerifyEmailPayload = { token: string };
 
 export const displayName = (u?: { username?: string | null; email?: string } | null) =>
   u?.username || u?.email?.split("@")[0] || "Someone";

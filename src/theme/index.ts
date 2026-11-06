@@ -29,24 +29,24 @@ export const TAB_BAR_HEIGHT = 64;
 
 export const shadows = {
   primaryGlow: {
-    shadowColor: "#621ded",
-    shadowOpacity: 0.45,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   card: {
     shadowColor: "#000",
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 16 },
-    elevation: 8,
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   chipOn: {
-    shadowColor: "#c8b0f7",
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
 } as const;

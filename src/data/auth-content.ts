@@ -46,6 +46,26 @@ export const authContent = {
     switchAction: "Log in",
   },
 
+  verifyEmail: {
+    verifyingTitle: "Verifying your email…",
+    successTitle: "Email verified",
+    successDescription: "Your account is active. You can now log in.",
+    successAction: "Continue to log in",
+    invalidTitle: "Link expired",
+    invalidDescription: "This verification link is invalid or has expired. Log in to request a new one.",
+    invalidAction: "Back to log in",
+  },
+
+  checkEmail: {
+    title: "Verify your email",
+    description: "We sent a verification link to {email}. Open it to activate your account. The link expires in 24 hours.",
+    resend: "Resend email",
+    resending: "Sending…",
+    resent: "If the account still needs verifying, a new link is on its way.",
+    back: "Back to log in",
+    notVerified: "Please verify your email before logging in.",
+  },
+
   forgotPassword: {
     title: "Reset your password",
     description: "Enter the email you signed up with and we'll send you a link to reset your password.",

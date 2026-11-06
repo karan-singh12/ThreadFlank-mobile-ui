@@ -12,7 +12,8 @@ type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   login: (payload: LoginPayload) => Promise<AuthUser>;
-  signup: (payload: SignupPayload) => Promise<AuthUser>;
+  /** Creates the account. Resolves true when the user must verify their email before logging in. */
+  signup: (payload: SignupPayload) => Promise<boolean>;
   logout: () => Promise<void>;
   /** Replaces the cached user after a profile edit or refresh. */
   setUser: (user: AuthUser) => Promise<void>;
@@ -73,7 +74,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (payload: LoginPayload) => start(await authApi.login(payload)), [start]);
-  const signup = useCallback(async (payload: SignupPayload) => start(await authApi.signup(payload)), [start]);
+  const signup = useCallback(
+    async (payload: SignupPayload) => {
+      const result = await authApi.signup(payload);
+      if ("token" in result) {
+        await start(result);
+        return false;
+      }
+      return true;
+    },
+    [start]
+  );
 
   const setUser = useCallback(async (user: AuthUser) => {
     setSession((s) => (s ? { ...s, user } : s));

@@ -23,7 +23,7 @@ export function CardGlow({ glow, size = 200 }: { glow: Glow; size?: number }) {
       <Svg width={size} height={size}>
         <Defs>
           <RadialGradient id={id} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={glow.color} stopOpacity={0.28} />
+            <Stop offset="0" stopColor={glow.color} stopOpacity={0.14} />
             <Stop offset="1" stopColor={glow.color} stopOpacity={0} />
           </RadialGradient>
         </Defs>
