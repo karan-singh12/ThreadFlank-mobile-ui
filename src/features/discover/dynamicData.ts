@@ -147,6 +147,7 @@ export function useDynamicDiscover(token?: string | null) {
 
   // Build dynamic Bidding Winners (Top 10 Promoted Brands)
   const biddingWinners = useMemo<BiddingWinnerBrand[]>(() => {
+    if (loading) return [];
     if (apiBrands.length === 0) return TOP_BIDDING_WINNERS;
 
     const winners: BiddingWinnerBrand[] = apiBrands.slice(0, 10).map((brand, idx) => {
@@ -186,10 +187,11 @@ export function useDynamicDiscover(token?: string | null) {
     }
 
     return winners;
-  }, [apiBrands, apiPosts]);
+  }, [loading, apiBrands, apiPosts]);
 
   // Build dynamic Brand Directory
   const brandsDirectory = useMemo<BrandDetail[]>(() => {
+    if (loading) return [];
     if (apiBrands.length === 0) return ALL_BRANDS_DIRECTORY;
 
     const dynamicDirectory = apiBrands.map((b) => mapApiBrandToBrandDetail(b, apiPosts));
@@ -199,10 +201,11 @@ export function useDynamicDiscover(token?: string | null) {
       return [...dynamicDirectory, ...supplemental];
     }
     return dynamicDirectory;
-  }, [apiBrands, apiPosts]);
+  }, [loading, apiBrands, apiPosts]);
 
   // Build dynamic Shelves from API posts
   const shelves = useMemo<DiscoverShelf[]>(() => {
+    if (loading) return [];
     if (apiPosts.length === 0) return DISCOVER_SHELVES;
 
     const dynamicOutfits = apiPosts.map((p, idx) => mapApiPostToShelfOutfit(p, idx));
@@ -278,7 +281,7 @@ export function useDynamicDiscover(token?: string | null) {
     }
 
     return dynamicShelves;
-  }, [apiPosts]);
+  }, [loading, apiPosts]);
 
   // Dynamic Category Pills for search & filter
   const categories = useMemo(() => {

@@ -15,6 +15,7 @@ import {
 } from "lucide-react-native";
 import { useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Linking,
@@ -46,6 +47,7 @@ export default function DiscoverScreen() {
   const { token } = useAuth();
 
   const {
+    loading,
     shelves: dynamicShelves,
     biddingWinners,
     brandsDirectory,
@@ -85,6 +87,19 @@ export default function DiscoverScreen() {
       // Ignored
     }
   };
+
+  if (loading) {
+    return (
+      <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator size="large" color={colors.accentBright} />
+          <AppText variant="xs" color={colors.subtle} style={{ marginTop: 12 }}>
+            Loading runway collections...
+          </AppText>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>

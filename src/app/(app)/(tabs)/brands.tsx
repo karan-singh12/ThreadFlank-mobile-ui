@@ -10,6 +10,7 @@ import {
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -34,7 +35,7 @@ export default function BrandsScreen() {
   const router = useRouter();
   const { token } = useAuth();
 
-  const { brandsDirectory, refetch } = useDynamicDiscover(token);
+  const { loading, brandsDirectory, refetch } = useDynamicDiscover(token);
 
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("All Maisons");
@@ -61,6 +62,19 @@ export default function BrandsScreen() {
       return matchesSearch && matchesCat;
     });
   }, [brandsDirectory, search, selectedCat]);
+
+  if (loading) {
+    return (
+      <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator size="large" color={colors.accentBright} />
+          <AppText variant="xs" color={colors.subtle} style={{ marginTop: 12 }}>
+            Loading luxury maisons...
+          </AppText>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
