@@ -43,13 +43,11 @@ export default function LoginScreen() {
       await login(values);
       // The protected-route guard switches to the app once the session is set.
     } catch (error) {
-      // Email verification check commented out for now
-      /*
+      // The backend answers 403 when the password is right but the email isn't verified yet.
       if (error instanceof ApiError && error.status === 403) {
         setUnverifiedEmail(values.email);
         return;
       }
-      */
       setFormError(applyServerErrors(error, setError, ["email", "password"], { 401: copy.invalidCredentials }) || null);
     }
   });
@@ -59,7 +57,6 @@ export default function LoginScreen() {
       <View style={styles.form}>
         {justReset && !formError && <Notice tone="success">{authContent.resetPassword.doneDescription}</Notice>}
         {formError && <Notice tone="error">{formError}</Notice>}
-        {/* Email verification notice commented out for now
         {unverifiedEmail && (
           <>
             <Notice tone={resent ? "success" : "error"}>{resent ? authContent.checkEmail.resent : authContent.checkEmail.notVerified}</Notice>
@@ -75,7 +72,6 @@ export default function LoginScreen() {
             )}
           </>
         )}
-        */}
 
         <Controller
           control={control}
