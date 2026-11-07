@@ -45,7 +45,9 @@ export default function SignupScreen() {
   const onSubmit = handleSubmit(async ({ username, email, password: pw }) => {
     setFormError(null);
     try {
-      if (await signup({ username, email, password: pw })) setSentTo(email);
+      // Email verification disabled for now; logs directly into account
+      await signup({ username, email, password: pw });
+      // if (await signup({ username, email, password: pw })) setSentTo(email);
     } catch (error) {
       // The backend reports a taken email as a plain 400 message; attach it to the field.
       if (error instanceof ApiError && error.status === 400 && /email/i.test(error.message) && /registered|exists/i.test(error.message)) {
@@ -56,6 +58,8 @@ export default function SignupScreen() {
     }
   });
 
+  /*
+  // Email verification screen commented out for now
   if (sentTo) {
     const notice = authContent.checkEmail;
     const [before, after] = notice.description.split("{email}");
@@ -99,6 +103,7 @@ export default function SignupScreen() {
       </AuthScaffold>
     );
   }
+  */
 
   return (
     <AuthScaffold title={copy.title} description={copy.description}>
