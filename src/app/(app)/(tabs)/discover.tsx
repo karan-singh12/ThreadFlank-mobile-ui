@@ -154,14 +154,17 @@ export default function DiscoverScreen() {
                 }}
                 style={styles.brandChip}
               >
-                <Image source={{ uri: brand.logo }} style={styles.brandChipLogo} />
-                <AppText variant="xs" style={styles.brandChipRank}>
-                  #{brand.rank}
-                </AppText>
+                <View style={styles.brandChipLogoWrap}>
+                  <Image source={{ uri: brand.logo }} style={styles.brandChipLogo} resizeMode="contain" />
+                  <View style={styles.brandChipRankBadge}>
+                    <AppText variant="xs" style={styles.brandChipRankText}>
+                      #{brand.rank}
+                    </AppText>
+                  </View>
+                </View>
                 <AppText variant="xs" style={styles.brandChipName} numberOfLines={1}>
                   {brand.name}
                 </AppText>
-                <ShieldCheck size={13} color={colors.accentBright} />
               </Pressable>
             ))}
           </ScrollView>
@@ -593,35 +596,52 @@ const styles = StyleSheet.create({
   },
   brandChipsTrack: {
     paddingHorizontal: 16,
-    gap: 10,
+    gap: 14,
+    paddingVertical: 4,
   },
   brandChip: {
-    flexDirection: "row",
     alignItems: "center",
-    height: 42,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(9, 11, 30, 0.9)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    gap: 8,
+    width: 68,
+    gap: 6,
+  },
+  brandChipLogoWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#ffffff",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 6,
+    position: "relative",
   },
   brandChipLogo: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#000000",
+    width: 36,
+    height: 36,
   },
-  brandChipRank: {
+  brandChipRankBadge: {
+    position: "absolute",
+    bottom: -3,
+    right: -3,
+    backgroundColor: "#0a0d24",
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.accentBright,
+  },
+  brandChipRankText: {
     color: colors.accentBright,
-    fontWeight: "700",
-    fontSize: 11,
+    fontWeight: "800",
+    fontSize: 9,
   },
   brandChipName: {
     color: colors.ink,
     fontWeight: "600",
-    fontSize: 12,
-    maxWidth: 120,
+    fontSize: 11,
+    textAlign: "center",
+    maxWidth: 68,
   },
   searchSection: {
     paddingHorizontal: 16,
