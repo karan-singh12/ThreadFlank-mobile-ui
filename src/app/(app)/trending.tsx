@@ -38,7 +38,7 @@ export default function TrendingScreen() {
   const shown = ranked.filter((p) => category === "All" || p.category === category).slice(0, 24);
 
   return (
-    <Screen header={<StackHeader title="Trending" />} onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+    <Screen header={<StackHeader title="Trending" />} onRefresh={() => void query.refetch()} refreshing={query.isRefetching}>
       <View style={styles.titleBlock}>
         <View style={styles.titleRow}>
           <Flame size={28} color="#fcd34d" />

@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Check } from "lucide-react-native";
+import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { Chip } from "@/components/ui/Chip";
@@ -26,8 +27,13 @@ export function SceneTabs({ categories, value, onChange }: { categories: string[
   );
 }
 
-/** The scene the next render is placed in: image or gradient tiles, four across. */
+/**
+ * The scene the next render is placed in: image or gradient tiles, four across at 4:3, as on the web.
+ * Tile size comes from the measured grid width: a % width with aspectRatio collapses in a wrapping row on RN 0.88.
+ */
 export function SceneGrid({ scenes, selectedId, onSelect }: { scenes: StudioScene[]; selectedId?: string; onSelect: (id: string) => void }) {
+  const [gridWidth, setGridWidth] = useState(0);
+  const tileWidth = gridWidth > 0 ? Math.floor((gridWidth - GAP * (COLUMNS - 1)) / COLUMNS) : 0;
   if (scenes.length === 0) {
     return (
       <View style={styles.empty}>
@@ -38,11 +44,12 @@ export function SceneGrid({ scenes, selectedId, onSelect }: { scenes: StudioScen
     );
   }
   return (
-    <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel={copy.steps.scene}>
-      {scenes.map((s) => {
+    <View style={styles.grid} onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)} accessibilityRole="radiogroup" accessibilityLabel={copy.steps.scene}>
+      {tileWidth > 0 &&
+        scenes.map((s) => {
         const on = selectedId === s.id;
         return (
-          <Pressable key={s.id} onPress={() => onSelect(s.id)} accessibilityRole="radio" accessibilityLabel={s.name} accessibilityState={{ selected: on }} style={[styles.tile, on && styles.tileOn]}>
+          <Pressable key={s.id} onPress={() => onSelect(s.id)} accessibilityRole="radio" accessibilityLabel={s.name} accessibilityState={{ selected: on }} style={[styles.tile, { width: tileWidth, height: Math.round((tileWidth * 3) / 4) }, on && styles.tileOn]}>
             <LinearGradient colors={sceneStops(s)} style={StyleSheet.absoluteFill} />
             {s.imageUrl ? <Photo src={s.imageUrl} alt="" style={StyleSheet.absoluteFill} /> : null}
             <LinearGradient colors={["transparent", "rgba(0,0,0,0.1)", "rgba(0,0,0,0.8)"]} style={StyleSheet.absoluteFill} />
@@ -64,11 +71,14 @@ export function SceneGrid({ scenes, selectedId, onSelect }: { scenes: StudioScen
   );
 }
 
+const COLUMNS = 4;
+const GAP = 6;
+
 const styles = StyleSheet.create({
   tabs: { gap: 6, marginBottom: 10 },
   empty: { borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: "rgba(255,255,255,0.02)", padding: 16 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  tile: { width: "23.5%", aspectRatio: 4 / 3, borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: colors.line },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: GAP },
+  tile: { borderRadius: radius.md, overflow: "hidden", borderWidth: 1, borderColor: colors.line },
   tileOn: { borderWidth: 2, borderColor: "rgba(255,255,255,0.9)" },
   label: { position: "absolute", left: 6, right: 6, bottom: 5, flexDirection: "row", alignItems: "center", gap: 4 },
   flex: { flex: 1 },

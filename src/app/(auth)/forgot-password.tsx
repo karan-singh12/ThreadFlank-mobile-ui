@@ -107,7 +107,7 @@ export default function ForgotPasswordScreen() {
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              onSubmitEditing={onSubmit}
+              onSubmitEditing={() => void onSubmit()}
             />
           )}
         />

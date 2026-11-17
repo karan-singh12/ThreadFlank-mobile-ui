@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react-native";
 import { Eye, EyeOff, Lock } from "lucide-react-native";
 import { forwardRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, TextInput, View, type StyleProp, type TextInputInstance, type TextInputProps, type ViewStyle } from "react-native";
 import { colors, fonts, radius } from "@/theme";
 import { AppText } from "./AppText";
 
@@ -23,7 +23,7 @@ export type TextFieldProps = Omit<TextInputProps, "style"> & {
 };
 
 /** Labelled text input matching the web's TextField / Field (border glow on focus, red on error). */
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+export const TextField = forwardRef<TextInputInstance, TextFieldProps>(function TextField(
   { label, icon: Icon, error, hint, trailing, labelAction, size = "lg", capsLabel, containerStyle, multiline, onFocus, onBlur, ...props },
   ref
 ) {
@@ -87,7 +87,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 });
 
 /** Password input with a show/hide toggle. */
-export const PasswordField = forwardRef<TextInput, Omit<TextFieldProps, "icon" | "trailing" | "secureTextEntry">>(function PasswordField(props, ref) {
+export const PasswordField = forwardRef<TextInputInstance, Omit<TextFieldProps, "icon" | "trailing" | "secureTextEntry">>(function PasswordField(props, ref) {
   const [visible, setVisible] = useState(false);
   const Toggle = visible ? EyeOff : Eye;
   return (

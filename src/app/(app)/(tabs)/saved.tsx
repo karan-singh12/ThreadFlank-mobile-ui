@@ -242,7 +242,7 @@ function SavedLooks({ tabs, bottom }: { tabs: ReactElement; bottom: number }) {
         )
       }
       contentContainerStyle={[styles.list, { paddingBottom: bottom }]}
-      refreshControl={<RefreshControl refreshing={looksQuery.isRefetching} onRefresh={() => looksQuery.refetch()} tintColor={colors.accentBright} colors={[colors.accentBright]} progressBackgroundColor={colors.surface} />}
+      refreshControl={<RefreshControl refreshing={looksQuery.isRefetching} onRefresh={() => void looksQuery.refetch()} tintColor={colors.accentBright} colors={[colors.accentBright]} progressBackgroundColor={colors.surface} />}
       keyboardDismissMode="on-drag"
       showsVerticalScrollIndicator={false}
     />

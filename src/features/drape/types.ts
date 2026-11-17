@@ -15,6 +15,8 @@ export type Outfit = {
   kind?: string;
   /** For "describe": the outfit as text, rendered straight onto the twin. */
   prompt?: string;
+  /** The brand's catalog piece this came from, so the brand sees the try-on. */
+  productId?: string;
 };
 
 /** Everything one person wears in a Drape render. */

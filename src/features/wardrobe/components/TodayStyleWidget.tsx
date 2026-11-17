@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ExternalLink, Shirt, WandSparkles } from "lucide-react-native";
+import { ExternalLink, Shirt } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { AppText } from "@/components/ui/AppText";
@@ -27,8 +27,8 @@ const shopLinks = (q: string) => [
   { label: "Nykaa Fashion", href: `https://www.nykaafashion.com/catalogsearch/result/?q=${encodeURIComponent(q)}` },
 ];
 
-/** Occasion Planner: up to 3 outfits from your wardrobe, a confidence score, gap pieces to buy, and the style rules it followed. */
-export function PlannerPanel({ items }: { items: WardrobeItem[] }) {
+/** "Today's Outfit" (the web's TodayStyleWidget): up to 3 outfits from your wardrobe, a confidence score, gap pieces to buy, and the style rules it followed. */
+export function TodayStyleWidget({ items }: { items: WardrobeItem[] }) {
   const { token } = useAuth();
   const [occasion, setOccasion] = useState<string>(OCCASIONS[0].id);
   const [dressCode, setDressCode] = useState("");
@@ -53,7 +53,7 @@ export function PlannerPanel({ items }: { items: WardrobeItem[] }) {
           dressCode: dressCode || undefined,
           location: location.trim() || undefined,
           budget: budget ? Math.round(Number(budget)) : undefined,
-          notes: notes.trim() || undefined,
+          notes: notes.trim() ? `${notes.trim()} | Prioritize items from wardrobe for today's outfit.` : "Prioritize items from wardrobe for today's outfit.",
         })
       );
     } catch {
@@ -68,9 +68,8 @@ export function PlannerPanel({ items }: { items: WardrobeItem[] }) {
   return (
     <GlassCard>
       <View style={styles.titleRow}>
-        <WandSparkles size={16} color={colors.accentBright} />
         <AppText variant="body" weight="medium">
-          {copy.plannerTitle}
+          Today's Outfit
         </AppText>
       </View>
 
@@ -84,8 +83,8 @@ export function PlannerPanel({ items }: { items: WardrobeItem[] }) {
           <TextField size="md" capsLabel label="Budget (₹)" keyboardType="number-pad" value={budget} onChangeText={(v) => setBudget(v.replace(/[^\d]/g, ""))} containerStyle={styles.flex} />
         </View>
         <TextField size="md" capsLabel multiline label="Notes" maxLength={300} value={notes} onChangeText={setNotes} placeholder={copy.plannerNotes} />
-        <Button fullWidth loading={loading} loadingText="Planning…" onPress={ask}>
-          {copy.plannerCta}
+        <Button fullWidth loading={loading} onPress={ask}>
+          Ask with AI
         </Button>
       </View>
 

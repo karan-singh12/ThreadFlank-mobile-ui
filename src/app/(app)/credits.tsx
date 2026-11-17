@@ -95,7 +95,7 @@ export default function CreditsScreen() {
           </View>
         </View>
         <AppText variant="xs" color={colors.muted} style={styles.gap}>
-          1 credit = 1 AI image · a motion video costs {catalogue.videoCost} credits · failed renders are refunded
+          1 credit = 1 AI image · failed renders are refunded
         </AppText>
       </GlassCard>
 

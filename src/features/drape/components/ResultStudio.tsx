@@ -1,6 +1,6 @@
 import Slider from "@react-native-community/slider";
 import { router } from "expo-router";
-import { Bookmark, Check, Download, Film, Palette, RotateCcw, Share2, Undo2 } from "lucide-react-native";
+import { Bookmark, Check, Download, Palette, RotateCcw, Share2, Undo2 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { AppText } from "@/components/ui/AppText";
@@ -13,7 +13,7 @@ import { CardGlow } from "@/components/ui/Step";
 import { Swatches } from "@/components/ui/Swatches";
 import { TextField } from "@/components/ui/TextField";
 import { useToast } from "@/components/ui/Toast";
-import { EYESHADOWS, FINISHES, LIPSTICKS, MOTIONS, POSES, type PoseId } from "@/data/look-edits";
+import { EYESHADOWS, FINISHES, LIPSTICKS, POSES, type PoseId } from "@/data/look-edits";
 import { OCCASIONS, drapeContent as copy } from "@/data/studio-content";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useSetCreditBalance } from "@/features/billing/api";
@@ -23,17 +23,16 @@ import { useLooksCache } from "@/features/workspace/hooks";
 import { errorMessage, OutOfCreditsError } from "@/lib/api/client";
 import { persistMedia, shareMedia } from "@/lib/media";
 import { colors, radius } from "@/theme";
-import { animateLook, editLook } from "../api";
+import { editLook } from "../api";
 import type { Result, StageView } from "../types";
 
-type Tool = "poses" | "makeup" | "motion";
+type Tool = "poses" | "makeup";
 const TOOLS: { id: Tool; label: string }[] = [
   { id: "poses", label: copy.posesLabel },
   { id: "makeup", label: copy.makeupLabel },
-  { id: "motion", label: copy.livenessLabel },
 ];
 
-/** Everything you can do with a finished render: save, share, download, poses, makeup and video. */
+/** Everything you can do with a finished render: save, share, download, poses and makeup (shoppers make photos; motion video is a brand tool). */
 export function ResultStudio({
   result,
   pieces,
@@ -61,7 +60,6 @@ export function ResultStudio({
   const [eyeshadow, setEyeshadow] = useState<string | null>(null);
   const [blush, setBlush] = useState(30);
   const [finish, setFinish] = useState<string>(FINISHES[0].id);
-  const [motion, setMotion] = useState<string>(MOTIONS[0].id);
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(defaultName);
@@ -109,14 +107,8 @@ export function ResultStudio({
     onView({ kind: "main" });
   };
 
-  const animate = () =>
-    tryTool("motion", async () => {
-      const video = await animateLook(result.image, motion, opts);
-      onChange((r) => ({ ...r, video }));
-      onView({ kind: "video" });
-    });
 
-  /** Keeps our own copies of the render, poses and video, then saves the look. Returns its id. */
+  /** Keeps our own copies of the render and poses, then saves the look. Returns its id. */
   const save = async () => {
     if (!token) throw new Error("Sign in to save looks");
     if (lookId) return lookId;
@@ -125,8 +117,7 @@ export function ResultStudio({
     try {
       const image = await persistMedia(token, result.image, "looks");
       const poseVariants = await Promise.all(result.poses.map(async (p) => ({ pose: p.pose, imageUrl: await persistMedia(token, p.imageUrl, "looks") })));
-      const videoUrl = result.video ? await persistMedia(token, result.video, "looks", "video") : undefined;
-      const look = await workspaceApi.saveLook(token, { name: name.trim() || defaultName, occasion, image, pieces, poseVariants, videoUrl });
+      const look = await workspaceApi.saveLook(token, { name: name.trim() || defaultName, occasion, image, pieces, poseVariants });
       looksCache.upsert(look);
       setLookId(look.id);
       setState("saved");
@@ -267,17 +258,6 @@ export function ResultStudio({
           </View>
         )}
 
-        {tool === "motion" && (
-          <View style={styles.toolBody}>
-            <AppText variant="xs" color={colors.muted}>
-              {copy.livenessHint}
-            </AppText>
-            <Segmented size="sm" value={motion} onChange={setMotion} options={MOTIONS} />
-            <Button icon={Film} loading={busy === "motion"} disabled={Boolean(busy)} onPress={animate}>
-              {result.video ? "Re-animate" : copy.animate}
-            </Button>
-          </View>
-        )}
 
         {toolError ? (
           <Notice tone="error">
@@ -297,7 +277,7 @@ export function ResultStudio({
         ) : null}
       </View>
 
-      <LookShareSheet open={sharing} onClose={() => setSharing(false)} lookId={lookId} ensureLookId={save} image={result.image} video={result.video} name={name || defaultName} />
+      <LookShareSheet open={sharing} onClose={() => setSharing(false)} lookId={lookId} ensureLookId={save} image={result.image} name={name || defaultName} />
     </GlassCard>
   );
 }

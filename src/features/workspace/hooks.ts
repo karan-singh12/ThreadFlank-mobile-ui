@@ -3,7 +3,8 @@ import { useMemo } from "react";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { socialApi, type CircleMemberRow, type ProfileMemberInput } from "@/features/social/api";
 import { queryKeys } from "@/lib/queryKeys";
-import { workspaceApi, type Look, type TwinInput, type WardrobeItem } from "./api";
+import { useSetCreditBalance } from "@/features/billing/api";
+import { workspaceApi, type Look, type TwinGenerateInput, type TwinInput, type WardrobeItem } from "./api";
 
 /** A circle member as the UI sees it (managed profile or linked friend). */
 export type CircleMember = {
@@ -42,8 +43,11 @@ export type Person = {
 
 export const SELF_ID = "me";
 
-/** The person's selfie: Drape renders them from it (face) plus their body details. */
-export const baseImage = (p?: Person) => p?.photo;
+/** The image a try-on dresses: the generated full-body twin when there is one, else the selfie (face only). */
+export const baseImage = (p?: Person) => p?.twin || p?.photo;
+
+/** True when `baseImage` is the full-body twin rather than a selfie. */
+export const hasBodyTwin = (p?: Person) => Boolean(p?.twin);
 
 const toMember = (m: CircleMemberRow): CircleMember => ({
   id: m.id,
@@ -80,11 +84,28 @@ export function useTwin() {
   const token = useTokenOrNull();
   const client = useQueryClient();
   const query = useQuery({ queryKey: queryKeys.twin(token), queryFn: () => workspaceApi.getTwin(token!), enabled: Boolean(token) });
+  const setCredits = useSetCreditBalance();
   const save = useMutation({
     mutationFn: (input: TwinInput) => workspaceApi.saveTwin(token!, input),
     onSuccess: (next) => client.setQueryData(queryKeys.twin(token), next),
   });
-  return { twin: query.data ?? null, loading: query.isLoading, refetch: query.refetch, save: save.mutateAsync, saving: save.isPending };
+  // Builds the portrait and body twin from the selfie; the server saves them on the profile.
+  const generate = useMutation({
+    mutationFn: (input: TwinGenerateInput) => workspaceApi.generateTwin(token!, input),
+    onSuccess: ({ creditsLeft, ...next }) => {
+      client.setQueryData(queryKeys.twin(token), next);
+      setCredits(creditsLeft);
+    },
+  });
+  return {
+    twin: query.data ?? null,
+    loading: query.isLoading,
+    refetch: query.refetch,
+    save: save.mutateAsync,
+    saving: save.isPending,
+    generate: generate.mutateAsync,
+    generating: generate.isPending,
+  };
 }
 
 export function useScenes() {
@@ -127,7 +148,7 @@ export function useCircle() {
   return {
     state: query.data ?? null,
     members,
-    limit: query.data?.circle.limit ?? 5,
+    limit: query.data?.circle.limit ?? 1,
     memberships: query.data?.memberships ?? [],
     loading: query.isLoading,
     error: query.error,

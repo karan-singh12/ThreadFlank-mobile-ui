@@ -60,7 +60,7 @@ export function AppHeader() {
 }
 
 const styles = StyleSheet.create({
-  bar: { height: 60, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: GUTTER },
+  bar: { height: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: GUTTER },
   brand: { flexDirection: "row", alignItems: "center", gap: 10 },
   actions: { flexDirection: "row", alignItems: "center", gap: 8 },
   profile: {

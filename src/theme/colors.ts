@@ -21,19 +21,19 @@ export const colors = {
   glass: "rgba(255,255,255,0.04)",
   glassStrong: "rgba(255,255,255,0.06)",
   overlay: "rgba(1,2,20,0.72)",
-  chipOnText: "#ffffff",
-  btnPrimaryText: "#ffffff",
+  chipOnText: "#0b0b1e",
+  btnPrimaryText: "#ded6ff",
   btnLightText: "#090a1a",
 } as const;
 
 /** Linear gradients (top → bottom unless noted) behind the web's utility classes. */
 export const gradients = {
-  /** .btn-primary — modern, vibrant executive violet */
-  primary: ["#6342f0", "#4d2ad9"] as const,
+  /** .btn-primary: deep violet, as on the web */
+  primary: ["#3f20be", "#190c4d"] as const,
   /** .btn-light */
   light: ["#ffffff", "#f1f0f7"] as const,
-  /** .chip-on — selected chip, tab or segment */
-  chipOn: ["rgba(127,98,246,0.22)", "rgba(102,69,235,0.15)"] as const,
+  /** .chip-on: selected chip, tab or segment (a light pill with dark text, as on the web) */
+  chipOn: ["rgba(255,255,255,0.95)", "rgba(228,227,240,0.9)"] as const,
   /** .card-violet */
   card: ["rgba(102,69,235,0.12)", "rgba(14,15,27,0.55)"] as const,
   /** .card-violet-strong */

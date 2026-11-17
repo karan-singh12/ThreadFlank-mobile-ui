@@ -3,7 +3,7 @@ import { Link, useLocalSearchParams } from "expo-router";
 import { Mail } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, View, type TextInput } from "react-native";
+import { StyleSheet, View, type TextInputInstance } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
 
   const {
     control,
@@ -111,7 +111,7 @@ export default function LoginScreen() {
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              onSubmitEditing={onSubmit}
+              onSubmitEditing={() => void onSubmit()}
               labelAction={
                 <Link href="/forgot-password">
                   <AppText variant="sm" color={colors.accentBright}>

@@ -1,7 +1,7 @@
 // Copy and option lists for Drape, Wardrobe and Profile. Components only read these shapes.
 
-/** Max people in a Twin Circle besides you (feature spec: an intimate circle of 4–5). */
-export const MEMBER_LIMIT = 5;
+/** Max people in a Twin Circle besides you: for now one (matches the backend limit). */
+export const MEMBER_LIMIT = 1;
 
 /** People in one Drape look: you plus one circle member (matches the backend limit). */
 export const LOOK_MAX_PEOPLE = 2;
@@ -249,7 +249,7 @@ export const wardrobeContent = {
 export const profileContent = {
   tabs: { twin: "My twin", circle: "Twin circle", looks: "Saved looks", account: "Account" },
   twinTitle: "Your twin",
-  twinDescription: "A clear selfie and your body details. Drape puts you in every outfit from these — your face comes straight from the selfie.",
+  twinDescription: "Add a clear selfie and your body details, then generate your twin: a clean portrait and a full-body photo. Drape dresses your twin in every outfit.",
   photo: "Selfie",
   photoHint: "Face the camera in good light — no sunglasses, mask or hat. Drape keeps the face from this photo.",
   takeSelfie: "Take selfie",
@@ -275,13 +275,13 @@ export const profileContent = {
   save: "Save",
   saved: "Saved",
   circleTitle: "Twin circle",
-  circleDescription: (limit: number) => `Add up to ${limit} people — partner, family or close friends — each with their own selfie and body details.`,
+  circleDescription: (limit: number) => `Add ${limit === 1 ? "one more person" : `up to ${limit} people`} — partner, family or a close friend — with their own selfie and body details.`,
   addMember: "Add member",
   editMember: "Edit member",
   memberName: "Name",
   relation: "Relation",
   removeMember: "Remove",
-  circleFull: (limit: number) => `Your circle is full (${limit} members).`,
+  circleFull: (limit: number) => `Your circle is full (${limit} ${limit === 1 ? "member" : "members"}).`,
   circleEmpty: "No one in your circle yet.",
   consent: "I have this person's permission to use their photo and body details.",
   drapeOn: "Drape on",
@@ -299,4 +299,15 @@ export const profileContent = {
   photoSaved: "Profile photo updated",
   twinReady: "Selfie ready",
   twinMissing: "No selfie yet",
+  generate: {
+    action: "Generate my twin",
+    redo: "Regenerate my twin",
+    costFirst: "Your first twin is free: a clean portrait and a full-body photo, saved to your profile.",
+    costRedo: "Rebuilding uses 2 credits (one per image). Your saved twin stays until the new one is ready.",
+    needSelfie: "Add a selfie first, then generate your twin.",
+    working: "Building your twin. This takes about a minute…",
+    done: "Your twin is ready. Drape will dress it in every outfit.",
+    portrait: "Portrait",
+    body: "Full body",
+  },
 };

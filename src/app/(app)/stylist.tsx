@@ -58,7 +58,7 @@ export default function StylistScreen() {
 
   const looks = queue.data ?? [];
   return (
-    <Screen header={<StackHeader title="Review queue" />} onRefresh={() => queue.refetch()} refreshing={queue.isRefetching}>
+    <Screen header={<StackHeader title="Review queue" />} onRefresh={() => void queue.refetch()} refreshing={queue.isRefetching}>
       <View style={styles.titleBlock}>
         <View style={styles.row}>
           <BadgeCheck size={26} color={colors.accentBright} />

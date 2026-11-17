@@ -3,7 +3,7 @@ import { Link, router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { StyleSheet, View, type TextInput } from "react-native";
+import { StyleSheet, View, type TextInputInstance } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -24,7 +24,7 @@ export default function ResetPasswordScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const [formError, setFormError] = useState<string | null>(null);
   const [linkInvalid, setLinkInvalid] = useState(!token);
-  const confirmRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInputInstance>(null);
 
   const {
     control,
@@ -108,7 +108,7 @@ export default function ResetPasswordScreen() {
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              onSubmitEditing={onSubmit}
+              onSubmitEditing={() => void onSubmit()}
             />
           )}
         />

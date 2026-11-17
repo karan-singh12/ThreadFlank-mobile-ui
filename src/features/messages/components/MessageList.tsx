@@ -133,13 +133,13 @@ export function MessageList({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-          ListHeaderComponent={typing ? <TypingRow person={person} isGroup={isGroup} /> : null}
+          ListHeaderComponent={typing ? <TypingRow person={person} isGroup={isGroup} /> : undefined}
           ListFooterComponent={
             loadingOlder ? (
               <View style={styles.older}>
                 <ActivityIndicator size="small" color={colors.muted} />
               </View>
-            ) : null
+            ) : undefined
           }
         />
       </Animated.View>

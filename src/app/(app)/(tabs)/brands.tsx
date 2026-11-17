@@ -1,722 +1,337 @@
-import { useRouter } from "expo-router";
-import {
-  ArrowRight,
-  ExternalLink,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  Store,
-  X,
-} from "lucide-react-native";
-import { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { ArrowUpRight, CalendarClock, Search, SearchX, ShieldCheck, X } from "lucide-react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
-import { Sheet } from "@/components/ui/Sheet";
-import { type BrandDetail } from "@/data/discover-shelves";
+import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
+import { GradientText } from "@/components/ui/GradientText";
+import { Photo } from "@/components/ui/Photo";
+import { Select } from "@/components/ui/Select";
+import { EmptyState } from "@/components/ui/States";
 import { AppHeader } from "@/features/app/AppHeader";
-import { useAuth } from "@/features/auth/AuthProvider";
-import { useDynamicDiscover } from "@/features/discover/dynamicData";
-import { colors, radius, TAB_BAR_HEIGHT } from "@/theme";
+import { BrandBanner, BrandLogo, brandAccent, monogram } from "@/features/brands/BrandVisuals";
+import { discoverApi, type ApiBrandCard, type ApiSpotlight, type DirectorySort } from "@/features/discover/api";
+import { errorMessage } from "@/lib/api/client";
+import { colors, fonts, GUTTER, radius } from "@/theme";
+
+// Same directory as the web's /brands page (User-Panel/src/features/brands/BrandsView.tsx).
+const PAGE_SIZE = 24;
+const SORTS: { value: DirectorySort; label: string }[] = [
+  { value: "featured", label: "Featured" },
+  { value: "new", label: "Newest" },
+  { value: "az", label: "A–Z" },
+];
+const pieces = (n: number) => `${n.toLocaleString("en-IN")} ${n === 1 ? "piece" : "pieces"}`;
+const dropIn = (iso: string) => {
+  const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+  return days <= 1 ? "Drop tomorrow" : `Drop in ${days} days`;
+};
+const openStore = (slug: string) => router.push({ pathname: "/brand/[slug]", params: { slug } });
+
+type Loaded = { key: string; items: ApiBrandCard[]; page: number; hasMore: boolean; total: number; error: string };
 
 export default function BrandsScreen() {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const { token } = useAuth();
+  const [q, setQ] = useState("");
+  const [text, setText] = useState("");
+  const [category, setCategory] = useState("");
+  const [sort, setSort] = useState<DirectorySort>("featured");
+  const key = `${q}|${category}|${sort}`;
+  const [reload, setReload] = useState(0);
 
-  const { loading, brandsDirectory, refetch } = useDynamicDiscover(token);
+  // Typing is instant; the request follows 350ms after the last keystroke.
+  useEffect(() => {
+    if (text.trim() === q) return;
+    const t = setTimeout(() => setQ(text.trim()), 350);
+    return () => clearTimeout(t);
+  }, [text, q]);
 
-  const [search, setSearch] = useState("");
-  const [selectedCat, setSelectedCat] = useState("All Maisons");
+  const [chips, setChips] = useState<{ name: string; count: number }[]>([]);
+  const [spotlight, setSpotlight] = useState<ApiSpotlight["brands"]>([]);
+  useEffect(() => {
+    let live = true;
+    discoverApi.directoryCategories().then((c) => live && setChips(c));
+    discoverApi.spotlight().then((s) => live && setSpotlight(s.brands));
+    return () => {
+      live = false;
+    };
+  }, [reload]);
+
+  const [data, setData] = useState<Loaded | null>(null);
+  const [more, setMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeBrand, setActiveBrand] = useState<BrandDetail | null>(null);
+  useEffect(() => {
+    const ctrl = new AbortController();
+    discoverApi
+      .directory({ page: 1, limit: PAGE_SIZE, q, category, sort }, ctrl.signal)
+      .then((r) => setData({ key, items: r.items, page: 1, hasMore: r.hasMore, total: r.total, error: "" }))
+      .catch((e) => {
+        if (!ctrl.signal.aborted) setData({ key, items: [], page: 1, hasMore: false, total: 0, error: errorMessage(e, "We couldn't load brands.") });
+      })
+      .finally(() => setRefreshing(false));
+    return () => ctrl.abort();
+  }, [key, q, category, sort, reload]);
 
-  const featuredMaison = brandsDirectory[0];
+  const current = data && data.key === key ? data : null;
+  const loadMore = useCallback(() => {
+    if (!current || !current.hasMore || more) return;
+    setMore(true);
+    discoverApi
+      .directory({ page: current.page + 1, limit: PAGE_SIZE, q, category, sort })
+      .then((r) => setData((d) => (d && d.key === key ? { ...d, items: [...d.items, ...r.items.filter((x) => !d.items.some((y) => y.id === x.id))], page: r.page, hasMore: r.hasMore, total: r.total } : d)))
+      .catch(() => setData((d) => (d && d.key === key ? { ...d, hasMore: false, error: "We couldn't load more brands." } : d)))
+      .finally(() => setMore(false));
+  }, [current, more, q, category, sort, key]);
 
-  const categories = useMemo(() => {
-    const cats = new Set<string>();
-    brandsDirectory.forEach((b) => {
-      if (b.category) cats.add(b.category);
-    });
-    return ["All Maisons", ...Array.from(cats)];
-  }, [brandsDirectory]);
+  const filtered = Boolean(q || category);
+  const total = current?.total ?? 0;
+  const chipList = useMemo(() => [{ name: "", count: 0 }, ...chips], [chips]);
+  const reset = () => {
+    setText("");
+    setQ("");
+    setCategory("");
+  };
 
-  const filtered = useMemo(() => {
-    return brandsDirectory.filter((b) => {
-      const matchesSearch =
-        !search ||
-        b.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.category.toLowerCase().includes(search.toLowerCase());
-      const matchesCat = selectedCat === "All Maisons" || b.category === selectedCat;
-      return matchesSearch && matchesCat;
-    });
-  }, [brandsDirectory, search, selectedCat]);
+  const header = (
+    <View style={styles.header}>
+      <View style={styles.titleBlock}>
+        <AppText variant="label" color={colors.cyan}>
+          BRANDS
+        </AppText>
+        <GradientText variant="h2">Every house, on you first</GradientText>
+        <AppText variant="sm" color={colors.muted}>
+          Step into a brand&apos;s store and drape any piece on your own selfie before you buy.
+        </AppText>
+      </View>
 
-  if (loading) {
-    return (
-      <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <ActivityIndicator size="large" color={colors.accentBright} />
-          <AppText variant="xs" color={colors.subtle} style={{ marginTop: 12 }}>
-            Loading luxury maisons...
+      <View style={styles.search}>
+        <Search size={16} color={colors.muted} />
+        <TextInput value={text} onChangeText={setText} placeholder="Search brands by name…" placeholderTextColor={colors.muted} returnKeyType="search" style={styles.searchInput} accessibilityLabel="Search brands" />
+        {text ? (
+          <Pressable onPress={() => setText("")} hitSlop={8} accessibilityLabel="Clear search">
+            <X size={15} color={colors.muted} />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {!filtered && spotlight.length > 0 && (
+        <View style={styles.spotlight}>
+          <AppText variant="label" color="#f6c453">
+            BRANDS OF THE MONTH
           </AppText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+            {spotlight.map((s) => (
+              <Pressable key={s.brand.id} onPress={() => openStore(s.brand.slug)} style={styles.spotPill}>
+                <BrandLogo src={s.brand.logoUrl} name={s.brand.name} size={40} />
+                <View>
+                  <View style={styles.row}>
+                    <AppText variant="sm" weight="medium">
+                      {s.brand.name}
+                    </AppText>
+                    {s.brand.isVerified && <ShieldCheck size={13} color={colors.accentBright} />}
+                  </View>
+                  <AppText variant="micro" color={colors.subtle}>
+                    #{s.rank} · {s.category || s.slot}
+                  </AppText>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
-      </Screen>
-    );
-  }
+      )}
+
+      <View style={styles.filterRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow} style={styles.flex}>
+          {chipList.map((c) => (
+            <Chip key={c.name || "all"} size="sm" label={c.name ? `${c.name}  ${c.count}` : "All brands"} selected={category.toLowerCase() === c.name.toLowerCase()} onPress={() => setCategory(c.name)} />
+          ))}
+        </ScrollView>
+      </View>
+      <Select label="Sort brands" value={sort} options={SORTS} onChange={(v) => setSort(v as DirectorySort)} />
+
+      {current && !current.error ? (
+        <AppText variant="xs" color={colors.muted}>
+          {total.toLocaleString("en-IN")} {total === 1 ? "brand" : "brands"}
+          {filtered ? " match" : ""}
+        </AppText>
+      ) : null}
+    </View>
+  );
+
+  const empty = !current ? (
+    <View style={styles.loading}>
+      <ActivityIndicator color={colors.accentBright} />
+    </View>
+  ) : current.error ? (
+    <EmptyState icon={SearchX} title="We couldn't load brands" description={current.error} action={<Button onPress={() => setReload((n) => n + 1)}>Try again</Button>} />
+  ) : (
+    <EmptyState
+      icon={SearchX}
+      title={filtered ? "No brands match that" : "No brands yet"}
+      description={filtered ? "Try another name or category, or reset the filters." : "Partner brands will show up here as soon as they go live."}
+      action={filtered ? <Button onPress={reset}>Reset filters</Button> : undefined}
+    />
+  );
 
   return (
     <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
       <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
+        data={current?.items ?? []}
+        keyExtractor={(b) => b.id}
+        renderItem={({ item }) => <BrandPlate brand={item} />}
+        ListHeaderComponent={header}
+        ListEmptyComponent={empty}
+        ListFooterComponent={
+          current && current.items.length > 0 ? (
+            <View style={styles.loading}>
+              {more ? <ActivityIndicator color={colors.subtle} /> : null}
+              {!current.hasMore && current.items.length > PAGE_SIZE ? (
+                <AppText variant="xs" color={colors.muted}>
+                  You&apos;ve seen all {total.toLocaleString("en-IN")} brands
+                </AppText>
+              ) : null}
+              {current.error ? (
+                <AppText variant="xs" color="#fca5a5">
+                  {current.error}
+                </AppText>
+              ) : null}
+            </View>
+          ) : undefined
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.6}
+        contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={async () => {
+            onRefresh={() => {
               setRefreshing(true);
-              try {
-                await refetch();
-              } finally {
-                setRefreshing(false);
-              }
+              setReload((n) => n + 1);
             }}
             tintColor={colors.accentBright}
+            colors={[colors.accentBright]}
+            progressBackgroundColor={colors.surface}
           />
         }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            {/* ─── 1. Grand Maison Hero Showcase (Top Featured) ─── */}
-            {!search && selectedCat === "All Maisons" && featuredMaison && (
-              <View style={styles.heroCard}>
-                <Image source={{ uri: featuredMaison.banner }} style={styles.heroBanner} />
-                <View style={styles.heroOverlay} />
-
-                <View style={styles.heroContent}>
-                  <View style={styles.heroTag}>
-                    <View style={styles.heroDot} />
-                    <AppText variant="xs" style={styles.heroTagText}>
-                      MAISON OF THE MONTH
-                    </AppText>
-                  </View>
-
-                  <AppText variant="title" style={styles.heroTitle}>
-                    {featuredMaison.name}
-                  </AppText>
-
-                  <AppText variant="xs" style={styles.heroStory} numberOfLines={2}>
-                    {featuredMaison.story}
-                  </AppText>
-
-                  <View style={styles.heroStatsRow}>
-                    <View style={styles.heroStatPill}>
-                      <AppText variant="xs" style={styles.heroStatText}>
-                        {featuredMaison.totalDrapes.toLocaleString()} Drapes
-                      </AppText>
-                    </View>
-                    <View style={styles.heroStatPill}>
-                      <AppText variant="xs" style={styles.heroStatText}>
-                        {featuredMaison.catalog.length} Runway Looks
-                      </AppText>
-                    </View>
-                  </View>
-
-                  <Pressable
-                    onPress={() => setActiveBrand(featuredMaison)}
-                    style={styles.heroEnterBtn}
-                  >
-                    <Store size={14} color="#ffffff" />
-                    <AppText variant="xs" style={styles.heroEnterBtnText}>
-                      Enter Virtual Atelier
-                    </AppText>
-                    <ArrowRight size={14} color="#ffffff" />
-                  </Pressable>
-                </View>
-              </View>
-            )}
-
-            {/* ─── 2. Search Box ─── */}
-            <View style={styles.searchBar}>
-              <Search size={15} color={colors.subtle} />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Search ateliers, designers..."
-                placeholderTextColor={colors.subtle}
-                style={styles.input}
-              />
-              {Boolean(search) && (
-                <Pressable onPress={() => setSearch("")} hitSlop={8}>
-                  <X size={14} color={colors.subtle} />
-                </Pressable>
-              )}
-            </View>
-
-            {/* ─── 3. Category Filter Pills ─── */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.pillsRow}
-            >
-              {categories.map((cat) => {
-                const active = selectedCat === cat;
-                return (
-                  <Pressable
-                    key={cat}
-                    onPress={() => setSelectedCat(cat)}
-                    style={[styles.pill, active && styles.pillActive]}
-                  >
-                    <AppText
-                      variant="xs"
-                      style={[styles.pillText, active && styles.pillTextActive]}
-                    >
-                      {cat}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Pressable onPress={() => setActiveBrand(item)} style={styles.card}>
-            {/* Banner */}
-            <View style={styles.bannerWrap}>
-              <Image source={{ uri: item.banner }} style={styles.banner} />
-              <View style={styles.categoryBadge}>
-                <AppText variant="xs" style={styles.badgeText}>
-                  {item.category}
-                </AppText>
-              </View>
-              <View style={styles.drapesBadge}>
-                <AppText variant="xs" style={styles.badgeText}>
-                  {item.totalDrapes.toLocaleString()} drapes
-                </AppText>
-              </View>
-            </View>
-
-            {/* Card Body */}
-            <View style={styles.body}>
-              <View style={styles.brandRow}>
-                <Image source={{ uri: item.logo }} style={styles.logo} />
-                <View style={styles.brandMeta}>
-                  <View style={styles.nameRow}>
-                    <AppText variant="body" style={styles.brandName} numberOfLines={1}>
-                      {item.name}
-                    </AppText>
-                    {item.isVerified && <ShieldCheck size={14} color={colors.accentBright} />}
-                  </View>
-                  <AppText variant="xs" style={styles.clientsCount}>
-                    {item.followersCount.toLocaleString()} clients
-                  </AppText>
-                </View>
-              </View>
-
-              <AppText variant="xs" style={styles.tagline} numberOfLines={2}>
-                {item.tagline || item.story}
-              </AppText>
-
-              {/* 3-Image Preview Strip */}
-              <View style={styles.previewRow}>
-                {item.catalog.slice(0, 3).map((outfit) => (
-                  <View key={outfit.id} style={styles.previewImgWrap}>
-                    <Image source={{ uri: outfit.images[0] }} style={styles.previewImg} />
-                    <View style={styles.previewPriceBadge}>
-                      <AppText variant="xs" style={styles.previewPriceText}>
-                        ₹{(outfit.price / 1000).toFixed(0)}k
-                      </AppText>
-                    </View>
-                  </View>
-                ))}
-              </View>
-
-              {/* Action Bar */}
-              <View style={styles.bottomBar}>
-                <AppText variant="xs" style={styles.enterShowroomText}>
-                  Explore Showroom
-                </AppText>
-                <ArrowRight size={14} color={colors.accentBright} />
-              </View>
-            </View>
-          </Pressable>
-        )}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
       />
-
-      {/* ─── Brand Storefront Modal / Sheet ─── */}
-      <Sheet
-        open={Boolean(activeBrand)}
-        onClose={() => setActiveBrand(null)}
-        title={activeBrand?.name}
-        subtitle={`${activeBrand?.totalDrapes.toLocaleString()} Completed Drapes`}
-        maxHeight={0.92}
-      >
-        {activeBrand && (
-          <View style={styles.sheetWrap}>
-            {/* Banner */}
-            <View style={styles.sheetBannerWrap}>
-              <Image source={{ uri: activeBrand.banner }} style={styles.sheetBanner} />
-              <View style={styles.sheetAvatarRow}>
-                <Image source={{ uri: activeBrand.logo }} style={styles.sheetAvatar} />
-                <View style={styles.sheetTitleBox}>
-                  <View style={styles.sheetTitleRow}>
-                    <AppText variant="title" style={styles.sheetBrandName}>
-                      {activeBrand.name}
-                    </AppText>
-                    {activeBrand.isVerified && (
-                      <ShieldCheck size={16} color={colors.accentBright} />
-                    )}
-                  </View>
-                  <AppText variant="xs" style={styles.sheetFollowers}>
-                    {activeBrand.followersCount.toLocaleString()} clients
-                  </AppText>
-                </View>
-              </View>
-            </View>
-
-            {/* Story */}
-            <AppText variant="xs" style={styles.sheetStory}>
-              {activeBrand.story}
-            </AppText>
-
-            {/* Catalog Grid */}
-            <AppText variant="body" style={styles.sheetCatalogHeading}>
-              Runway Pieces ({activeBrand.catalog.length})
-            </AppText>
-
-            <View style={styles.catalogGrid}>
-              {activeBrand.catalog.map((item) => (
-                <View key={item.id} style={styles.catalogCard}>
-                  <Image source={{ uri: item.images[0] }} style={styles.catalogCardImg} />
-                  <View style={styles.catalogCardBody}>
-                    <AppText variant="xs" style={styles.catalogCardTitle} numberOfLines={1}>
-                      {item.title}
-                    </AppText>
-                    <AppText variant="xs" style={styles.catalogCardPrice}>
-                      ₹{item.price.toLocaleString()}
-                    </AppText>
-                    <Pressable
-                      onPress={() => {
-                        const name = activeBrand.name;
-                        setActiveBrand(null);
-                        router.push(
-                          `/drape?garmentUrl=${encodeURIComponent(
-                            item.images[0]
-                          )}&title=${encodeURIComponent(item.title)}&brand=${encodeURIComponent(
-                            name
-                          )}`
-                        );
-                      }}
-                      style={styles.catalogDrapeBtn}
-                    >
-                      <Sparkles size={11} color="#ffffff" />
-                      <AppText variant="xs" style={styles.catalogDrapeText}>
-                        Drape Look
-                      </AppText>
-                    </Pressable>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-      </Sheet>
     </Screen>
   );
 }
 
+/** A tall plate that reads like the brand's own lookbook cover; the whole card opens its store. */
+function BrandPlate({ brand }: { brand: ApiBrandCard }) {
+  const accent = brandAccent(brand.themeAccent);
+  const deck = brand.previews.filter((p) => p.image).slice(0, 3);
+  return (
+    <Pressable onPress={() => openStore(brand.slug)} accessibilityRole="link" accessibilityLabel={`Open ${brand.name}`} style={styles.plateWrap}>
+      <View style={styles.plate}>
+        <View style={styles.plateArt}>
+          <BrandBanner src={brand.banner} accent={accent} />
+          <LinearGradient colors={["rgba(1,2,20,0.35)", "rgba(1,2,20,0.05)", "rgba(1,2,20,0.55)", "rgba(1,2,20,0.96)"]} locations={[0, 0.3, 0.6, 1]} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={["transparent", `${accent}59`]} locations={[0.4, 1]} style={StyleSheet.absoluteFill} />
+          <AppText style={[styles.monogram, { color: accent }]}>{monogram(brand.name)}</AppText>
+
+          <View style={styles.plateTop}>
+            <BrandLogo src={brand.logo} name={brand.name} size={44} ring={accent} />
+            {brand.category ? (
+              <View style={styles.catPill}>
+                <AppText variant="micro" color="rgba(255,255,255,0.9)">
+                  {brand.category.toUpperCase()}
+                </AppText>
+              </View>
+            ) : null}
+          </View>
+
+          {deck.length > 0 && (
+            <View style={styles.deck} pointerEvents="none">
+              {deck.map((item, i) => {
+                const off = i - (deck.length - 1) / 2;
+                return (
+                  <View key={item.id} style={[styles.deckCard, { zIndex: i, transform: [{ translateX: off * 7 }, { rotate: `${off * 4.5}deg` }] }]}>
+                    <Photo src={item.image} style={StyleSheet.absoluteFill} />
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          <View style={styles.plateBottom}>
+            <View style={styles.row}>
+              <AppText style={styles.plateName} numberOfLines={1}>
+                {brand.name}
+              </AppText>
+              {brand.isVerified && <ShieldCheck size={18} color={accent} accessibilityLabel="Verified brand" />}
+            </View>
+            {brand.tagline ? (
+              <AppText variant="sm" color="rgba(255,255,255,0.7)" numberOfLines={2} style={styles.tagline}>
+                {brand.tagline}
+              </AppText>
+            ) : null}
+            {brand.nextDrop ? (
+              <View style={[styles.dropPill, { backgroundColor: `${accent}47`, borderColor: `${accent}8c` }]}>
+                <CalendarClock size={12} color="#fff" />
+                <AppText variant="micro" color="#fff">
+                  {dropIn(brand.nextDrop)}
+                </AppText>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        {brand.announcementText ? (
+          <View style={styles.announce}>
+            <View style={[styles.dot, { backgroundColor: accent }]} />
+            <AppText variant="xs" color={colors.subtle} numberOfLines={1} style={styles.flex}>
+              {brand.announcementText}
+            </AppText>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.plateMeta}>
+        <AppText variant="xs" color={colors.muted}>
+          {pieces(brand.piecesCount)}
+        </AppText>
+        <View style={styles.row}>
+          <AppText variant="sm" color="rgba(255,255,255,0.85)">
+            Open store
+          </AppText>
+          <ArrowUpRight size={16} color={accent} />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.canvas,
-  },
-  content: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
-  header: {
-    marginBottom: 16,
-  },
-  heroCard: {
-    borderRadius: 22,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
-    backgroundColor: "#070817",
-    marginBottom: 16,
-  },
-  heroBanner: {
-    ...StyleSheet.absoluteFill,
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    opacity: 0.35,
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(7, 9, 25, 0.6)",
-  },
-  heroContent: {
-    padding: 18,
-  },
-  heroTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    alignSelf: "flex-start",
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-  },
-  heroDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accentBright,
-  },
-  heroTagText: {
-    color: colors.ink,
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.8,
-  },
-  heroTitle: {
-    color: colors.ink,
-    fontWeight: "900",
-    fontSize: 22,
-    marginBottom: 6,
-    textTransform: "uppercase",
-  },
-  heroStory: {
-    color: "rgba(255, 255, 255, 0.75)",
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  heroStatsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 14,
-  },
-  heroStatPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  heroStatText: {
-    color: colors.ink,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  heroEnterBtn: {
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.accent,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  heroEnterBtnText: {
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-  searchBar: {
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    gap: 8,
-    marginBottom: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.ink,
-  },
-  pillsRow: {
-    gap: 8,
-  },
-  pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  pillActive: {
-    backgroundColor: "#ffffff",
-    borderColor: "#ffffff",
-  },
-  pillText: {
-    color: colors.subtle,
-    fontWeight: "500",
-  },
-  pillTextActive: {
-    color: "#0b0b1e",
-    fontWeight: "700",
-  },
-  card: {
-    borderRadius: 20,
-    backgroundColor: "rgba(8, 9, 30, 0.9)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.09)",
-    overflow: "hidden",
-    marginBottom: 16,
-  },
-  bannerWrap: {
-    height: 125,
-    backgroundColor: "#000000",
-  },
-  banner: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    opacity: 0.7,
-  },
-  categoryBadge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
-    borderRadius: radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
-  },
-  drapesBadge: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
-    borderRadius: radius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
-  },
-  badgeText: {
-    color: colors.ink,
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  body: {
-    padding: 14,
-  },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginTop: -28,
-    marginBottom: 8,
-  },
-  logo: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.25)",
-    backgroundColor: "#000000",
-  },
-  brandMeta: {
-    flex: 1,
-  },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  brandName: {
-    color: colors.ink,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  clientsCount: {
-    color: colors.subtle,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  tagline: {
-    color: colors.subtle,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  previewRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 12,
-  },
-  previewImgWrap: {
-    flex: 1,
-    aspectRatio: 3 / 4,
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  previewImg: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  previewPriceBadge: {
-    position: "absolute",
-    bottom: 4,
-    left: 4,
-    right: 4,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 6,
-    paddingVertical: 2,
-    alignItems: "center",
-  },
-  previewPriceText: {
-    color: colors.ink,
-    fontSize: 9,
-    fontWeight: "700",
-  },
-  bottomBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.06)",
-  },
-  enterShowroomText: {
-    color: colors.accentBright,
-    fontWeight: "600",
-    fontSize: 12,
-  },
-  sheetWrap: {
-    paddingBottom: 24,
-  },
-  sheetBannerWrap: {
-    height: 140,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#000000",
-    marginBottom: 12,
-  },
-  sheetBanner: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    opacity: 0.65,
-  },
-  sheetAvatarRow: {
-    position: "absolute",
-    bottom: 10,
-    left: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  sheetAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    backgroundColor: "#000000",
-  },
-  sheetTitleBox: {
-    flex: 1,
-  },
-  sheetTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  sheetBrandName: {
-    color: colors.ink,
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  sheetFollowers: {
-    color: colors.subtle,
-    fontSize: 11,
-  },
-  sheetStory: {
-    color: colors.subtle,
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-  sheetCatalogHeading: {
-    color: colors.ink,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  catalogGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  catalogCard: {
-    width: "48%",
-    borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    overflow: "hidden",
-  },
-  catalogCardImg: {
-    aspectRatio: 3 / 4,
-    width: "100%",
-    backgroundColor: "#000000",
-  },
-  catalogCardBody: {
-    padding: 8,
-  },
-  catalogCardTitle: {
-    color: colors.ink,
-    fontWeight: "600",
-    fontSize: 11,
-  },
-  catalogCardPrice: {
-    color: colors.accentBright,
-    fontWeight: "700",
-    fontSize: 11,
-    marginTop: 2,
-    marginBottom: 6,
-  },
-  catalogDrapeBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.pill,
-    paddingVertical: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  catalogDrapeText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "600",
-  },
+  flex: { flex: 1 },
+  row: { flexDirection: "row", alignItems: "center", gap: 6 },
+  list: { paddingHorizontal: GUTTER, paddingBottom: 120 },
+  header: { gap: 14, paddingTop: 8, paddingBottom: 16 },
+  titleBlock: { gap: 6 },
+  search: { height: 48, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.04)", paddingHorizontal: 16 },
+  searchInput: { flex: 1, color: colors.ink, fontFamily: fonts.regular, fontSize: 14 },
+  spotlight: { gap: 10, borderRadius: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)", padding: 14 },
+  spotPill: { flexDirection: "row", alignItems: "center", gap: 10, height: 52, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.05)", paddingLeft: 6, paddingRight: 16 },
+  filterRow: { flexDirection: "row", alignItems: "center" },
+  chipRow: { gap: 8, paddingRight: 4 },
+  loading: { minHeight: 72, alignItems: "center", justifyContent: "center" },
+  plateWrap: { marginBottom: 28 },
+  plate: { borderRadius: 26, overflow: "hidden", backgroundColor: "#0b0c22", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  plateArt: { aspectRatio: 4 / 5 },
+  monogram: { position: "absolute", right: -6, top: 0, fontFamily: fonts.medium, fontSize: 104, lineHeight: 112, letterSpacing: -8, opacity: 0.16 },
+  plateTop: { position: "absolute", left: 16, top: 16, flexDirection: "row", alignItems: "center", gap: 10 },
+  catPill: { borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.08)", paddingHorizontal: 10, paddingVertical: 4 },
+  deck: { position: "absolute", right: 20, bottom: 140, width: 78, height: 100 },
+  deckCard: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" },
+  plateBottom: { position: "absolute", left: 20, right: 20, bottom: 20 },
+  plateName: { flexShrink: 1, fontFamily: fonts.medium, fontSize: 26, lineHeight: 30, letterSpacing: -0.8, color: "#fff" },
+  tagline: { marginTop: 6, maxWidth: "85%" },
+  dropPill: { marginTop: 10, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
+  announce: { flexDirection: "row", alignItems: "center", gap: 8, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.08)", paddingHorizontal: 20, paddingVertical: 10 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  plateMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10, paddingHorizontal: 4 },
 });

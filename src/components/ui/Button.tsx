@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   fill: { flex: 1, borderRadius: radius.pill, justifyContent: "center" },
-  primaryRim: { borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
+  primaryRim: { borderWidth: 1, borderColor: "rgba(127,98,246,0.45)" },
   lightRim: { borderWidth: 1, borderColor: "rgba(255,255,255,0.9)" },
   row: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   ghost: { borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", justifyContent: "center" },
