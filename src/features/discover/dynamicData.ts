@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   discoverApi,
-  type ApiBrand,
   type ApiBrandPost,
+  type ApiDiscoverCategory,
+  type ApiShowcaseBrand,
+  type ApiSpotlight,
 } from "./api";
+import { API_BASE_URL } from "@/lib/api/config";
 import {
-  DISCOVER_SHELVES,
-  TOP_BIDDING_WINNERS,
-  ALL_BRANDS_DIRECTORY,
   type ShelfOutfit,
   type DiscoverShelf,
   type BiddingWinnerBrand,
   type BrandDetail,
   type BrandCatalogItem,
 } from "@/data/discover-shelves";
+
+/** The same name matching the server uses, so "Navratri Men" and "navratri  men" are one category. */
+const slugOf = (v: string) => v.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 function extractPrice(post: ApiBrandPost): number {
   if (post.variants && post.variants.length > 0 && post.variants[0].price) {
@@ -24,7 +27,8 @@ function extractPrice(post: ApiBrandPost): number {
     const num = parseInt(raw.replace(/[^0-9]/g, ""), 10);
     if (!isNaN(num) && num > 0) return num;
   }
-  return 42000;
+  // Unknown: the UI shows "Price at store" instead of a made-up number.
+  return 0;
 }
 
 function extractFabric(caption: string = ""): string {
@@ -32,193 +36,188 @@ function extractFabric(caption: string = ""): string {
   for (const f of fabrics) {
     if (new RegExp(f, "i").test(caption)) return f;
   }
-  return "Fine Silk";
+  return "";
 }
 
 /** Convert a backend ApiBrandPost into our ShelfOutfit shape */
-export function mapApiPostToShelfOutfit(post: ApiBrandPost, index: number = 0): ShelfOutfit {
-  const firstImage =
-    Array.isArray(post.images) && post.images.length > 0
-      ? post.images[0]
-      : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&auto=format&fit=crop&q=80";
+export function mapApiPostToShelfOutfit(post: ApiBrandPost): ShelfOutfit {
+  const firstImage = Array.isArray(post.images) && post.images.length > 0 ? post.images[0] : PLACEHOLDER_IMAGE;
 
   const price = extractPrice(post);
-  const brandName = post.brand?.name || "Atelier Studio";
-  const brandLogo = post.brand?.logoUrl || "https://images.unsplash.com/photo-1544441893-675973e31985?w=200&auto=format&fit=crop&q=80";
-  const brandSlug = post.brand?.slug || "atelier";
-  const category = post.category || "Runway Edit";
+  const brandName = post.brand?.name || "Threadflank";
+  const brandLogo = post.brand?.logoUrl || PLACEHOLDER_IMAGE;
+  const brandSlug = post.brand?.slug || "";
+  const category = post.category || "";
 
   return {
     id: post.id,
-    title: post.title || post.caption.slice(0, 48) || "Runway Statement Look",
+    title: post.title || post.caption.slice(0, 48) || `Look by ${brandName}`,
     brandId: post.brandId,
     brandName,
     brandLogo,
     brandSlug,
     isVerified: post.brand?.isVerified ?? true,
     price,
-    originalPrice: price > 50000 ? Math.round(price * 1.15) : undefined,
     imageUrl: firstImage,
     category,
     occasion: category,
-    drapesCount: (post.likesCount || 0) * 3 + 140 + index * 12,
+    // No try-on counter exists yet, so this is 0 rather than a guess built from likes.
+    drapesCount: 0,
     likesCount: post.likesCount || 0,
     sharesCount: post.sharesCount || 0,
-    buyUrl: post.variants?.[0]?.productUrl || `https://threadflank.com/drape?postId=${post.id}`,
+    buyUrl: post.hasBuyLink ? `${API_BASE_URL}/brands/products/${post.id}/go` : post.variants?.[0]?.productUrl || "",
     fabric: extractFabric(post.caption),
   };
 }
 
-/** Convert an ApiBrand and its associated posts into BrandDetail shape */
-export function mapApiBrandToBrandDetail(brand: ApiBrand, posts: ApiBrandPost[]): BrandDetail {
-  const brandPosts = posts.filter((p) => p.brandId === brand.id);
-  const defaultBanner =
-    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80";
+const PLACEHOLDER_IMAGE = "/logo-emblem.webp";
 
-  const catalog: BrandCatalogItem[] = brandPosts.map((p, idx) => {
-    const img = Array.isArray(p.images) && p.images.length > 0 ? p.images : [defaultBanner];
-    const price = extractPrice(p);
-    return {
-      id: p.id,
-      title: p.title || p.caption.slice(0, 40) || `Piece #${idx + 1}`,
-      sku: `SKU-${p.id.slice(-6).toUpperCase()}`,
-      price,
-      originalPrice: price > 50000 ? Math.round(price * 1.15) : undefined,
-      images: img,
-      category: p.category || brand.category || "Haute Couture",
-      occasions: [p.category || "Festive"],
-      colors: ["Royal Ivory", "Gold"],
-      sizes: ["XS", "S", "M", "L", "XL"],
-      fabric: extractFabric(p.caption),
-      stock: 12,
-      drapesCount: (p.likesCount || 0) * 3 + 80,
-      likesCount: p.likesCount || 0,
-      isDrapeReady: true,
-      buyUrl: p.variants?.[0]?.productUrl || brand.socialLinks?.website || "https://threadflank.com",
-      collection: "Current Runway",
-    };
-  });
-
-  const finalCatalog = catalog.length > 0 ? catalog : ALL_BRANDS_DIRECTORY[0]?.catalog || [];
-
+/** A brand as the brand panel set it up: its own catalog, its own drops. Nothing here is invented. */
+export function mapShowcaseBrand(entry: ApiShowcaseBrand): BrandDetail {
+  const { brand, products, drops } = entry;
+  const social = brand.socialLinks ?? {};
+  const text = (v: unknown) => (typeof v === "string" ? v : "");
+  const catalog: BrandCatalogItem[] = products.map((p) => ({
+    id: p.id,
+    title: p.title,
+    sku: "",
+    price: p.price,
+    originalPrice: p.originalPrice,
+    images: p.images.length > 0 ? p.images : [PLACEHOLDER_IMAGE],
+    category: p.category,
+    occasions: p.occasions,
+    colors: p.colors,
+    sizes: p.sizes,
+    fabric: "",
+    stock: p.inStock ? 1 : 0,
+    drapesCount: 0,
+    likesCount: 0,
+    isDrapeReady: p.isDrapeReady,
+    // Buy goes through the backend so the brand sees the click, then lands on the brand's own store page.
+    buyUrl: p.hasBuyLink ? `${API_BASE_URL}/brands/products/${p.id}/go` : "",
+    collection: "",
+  }));
+  const logo = brand.logoUrl || "";
   return {
     id: brand.id,
     name: brand.name,
     slug: brand.slug,
-    logo: brand.logoUrl || "https://images.unsplash.com/photo-1544441893-675973e31985?w=200&auto=format&fit=crop&q=80",
-    banner: brandPosts[0]?.images?.[0] || defaultBanner,
-    story: brand.description || "Contemporary luxury atelier presenting handcrafted artisanal couture.",
-    category: brand.category || "Ethnic Luxury",
+    logo,
+    // Only a real photo is used as the cover. With none, the card shows the brand colour instead of a stretched logo.
+    banner: text(social.banner) || products.find((p) => p.images.length > 0)?.images[0] || "",
+    story: brand.description ?? "",
+    category: brand.category || "Fashion",
     isVerified: brand.isVerified,
-    followersCount: 12400 + brandPosts.length * 1500,
-    totalDrapes: brandPosts.reduce((acc, p) => acc + (p.likesCount * 3 + 80), 3200),
-    themeAccent: "#6645eb",
-    websiteUrl: brand.socialLinks?.website || `https://${brand.slug}.com`,
-    collections: ["Current Runway", "Signature Edit"],
-    catalog: finalCatalog,
+    followersCount: 0,
+    totalDrapes: 0,
+    themeAccent: text(social.themeAccent) || "#6645eb",
+    announcementText: text(social.announcementText) || undefined,
+    websiteUrl: brand.websiteUrl || text(social.website),
+    collections: [],
+    catalog,
+    drops: drops.map((d) => ({ id: d.id, title: d.title, collectionName: d.collectionName, description: d.description, launchDate: d.launchDate, waitlistCount: d.waitlistCount, status: d.status, bannerUrl: d.bannerUrl, joined: d.joined })),
   };
 }
 
 /** Hook that loads real brands & posts from backend and creates dynamic Spotify-style shelves */
 export function useDynamicDiscover(token?: string | null) {
   const [loading, setLoading] = useState(true);
-  const [apiBrands, setApiBrands] = useState<ApiBrand[]>([]);
+  const [showcase, setShowcase] = useState<ApiShowcaseBrand[]>([]);
+  const [spotlight, setSpotlight] = useState<ApiSpotlight>({ period: null, brands: [] });
+  const [adminCategories, setAdminCategories] = useState<ApiDiscoverCategory[]>([]);
   const [apiPosts, setApiPosts] = useState<ApiBrandPost[]>([]);
-
-  const loadData = useCallback(async () => {
-    try {
-      const [brandsRes, postsRes] = await Promise.all([
-        discoverApi.listBrands(token),
-        discoverApi.listBrandPosts(token, { limit: 100 }),
-      ]);
-
-      setApiBrands(brandsRes || []);
-      setApiPosts(postsRes.posts || []);
-    } catch (err) {
-      console.warn("Could not fetch discover data from API, using fallback", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  // Bumped by pull-to-refresh to load everything again.
+  const [reload, setReload] = useState(0);
+  const refetch = useCallback(() => setReload((n) => n + 1), []);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadData() {
+      try {
+        const [showcaseRes, spotlightRes, categoriesRes, postsRes] = await Promise.all([
+          discoverApi.showcase(token),
+          discoverApi.spotlight(),
+          discoverApi.categories(),
+          discoverApi.listBrandPosts(token, { limit: 100 }),
+        ]);
+
+        if (!active) return;
+        setShowcase(showcaseRes);
+        setSpotlight(spotlightRes);
+        setAdminCategories(categoriesRes);
+        setApiPosts(postsRes.posts || []);
+      } catch (err) {
+        console.warn("Could not fetch discover data from API, using fallback", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
     loadData();
-  }, [loadData]);
+    return () => {
+      active = false;
+    };
+  }, [token, reload]);
 
-  // Build dynamic Bidding Winners (Top 10 Promoted Brands)
-  const biddingWinners = useMemo<BiddingWinnerBrand[]>(() => {
-    if (loading) return [];
-    if (apiBrands.length === 0) return TOP_BIDDING_WINNERS;
+  // Brands that really won the latest runway auction. Empty until an auction has closed with winners.
+  const brandsDirectory = useMemo<BrandDetail[]>(() => (loading ? [] : showcase.map(mapShowcaseBrand)), [loading, showcase]);
 
-    const winners: BiddingWinnerBrand[] = apiBrands.slice(0, 10).map((brand, idx) => {
-      const brandPosts = apiPosts.filter((p) => p.brandId === brand.id);
-      const hero = brandPosts[0];
-      const heroImg =
-        hero?.images?.[0] ||
-        TOP_BIDDING_WINNERS[idx % TOP_BIDDING_WINNERS.length]?.heroOutfit.imageUrl ||
-        "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&auto=format&fit=crop&q=80";
+  const toPromoted = (b: BrandDetail, rank: number, tagline?: string): BiddingWinnerBrand => {
+    const hero = b.catalog[0];
+    return {
+      rank,
+      id: b.id,
+      name: b.name,
+      slug: b.slug,
+      logo: b.logo,
+      banner: b.banner,
+      tagline: b.story || tagline || "",
+      followersCount: 0,
+      monthlyScore: 0,
+      heroOutfit: { id: hero?.id ?? `hero_${b.id}`, title: hero?.title ?? "", imageUrl: hero?.images[0] ?? b.banner, price: hero?.price ?? 0, drapes: 0 },
+    };
+  };
 
-      return {
-        rank: idx + 1,
-        id: brand.id,
-        name: brand.name,
-        slug: brand.slug,
-        logo: brand.logoUrl || TOP_BIDDING_WINNERS[idx % TOP_BIDDING_WINNERS.length]?.logo || "",
-        banner: heroImg,
-        tagline: brand.description || "Contemporary Indian luxury rooted in indigenous textile craft.",
-        followersCount: 14000 + (10 - idx) * 3500,
-        monthlyScore: 18000 - idx * 800,
-        heroOutfit: {
-          id: hero?.id || `hero_${brand.id}`,
-          title: hero?.title || hero?.caption.slice(0, 36) || "Signature Runway Look",
-          imageUrl: heroImg,
-          price: hero ? extractPrice(hero) : 46000,
-          drapes: 12000 - idx * 600,
-        },
-      };
+  const promoted = useMemo<{ brands: BiddingWinnerBrand[]; isAuction: boolean }>(() => {
+    if (loading) return { brands: [], isAuction: false };
+    const winners = spotlight.brands.flatMap((w) => {
+      const detail = brandsDirectory.find((b) => b.id === w.brand.id);
+      return detail ? [toPromoted(detail, w.rank, w.category)] : [];
     });
-
-    if (winners.length < 4) {
-      const extra = TOP_BIDDING_WINNERS.slice(winners.length).map((b, i) => ({
-        ...b,
-        rank: winners.length + i + 1,
-      }));
-      return [...winners, ...extra];
-    }
-
-    return winners;
-  }, [loading, apiBrands, apiPosts]);
-
-  // Build dynamic Brand Directory
-  const brandsDirectory = useMemo<BrandDetail[]>(() => {
-    if (loading) return [];
-    if (apiBrands.length === 0) return ALL_BRANDS_DIRECTORY;
-
-    const dynamicDirectory = apiBrands.map((b) => mapApiBrandToBrandDetail(b, apiPosts));
-    if (dynamicDirectory.length < ALL_BRANDS_DIRECTORY.length) {
-      const existingSlugs = new Set(dynamicDirectory.map((b) => b.slug));
-      const supplemental = ALL_BRANDS_DIRECTORY.filter((b) => !existingSlugs.has(b.slug));
-      return [...dynamicDirectory, ...supplemental];
-    }
-    return dynamicDirectory;
-  }, [loading, apiBrands, apiPosts]);
+    if (winners.length > 0) return { brands: winners, isAuction: true };
+    // No auction has closed yet: show real brands (ones with pieces first, then verified), labelled as plain brands, not as promoted.
+    const ranked = [...brandsDirectory]
+      .sort((a, b) => Number(b.catalog.length > 0) - Number(a.catalog.length > 0) || Number(b.isVerified) - Number(a.isVerified) || a.name.localeCompare(b.name))
+      .slice(0, 10)
+      .map((b, i) => toPromoted(b, i + 1));
+    return { brands: ranked, isAuction: false };
+  }, [loading, spotlight, brandsDirectory]);
+  const biddingWinners = promoted.brands;
 
   // Build dynamic Shelves from API posts
   const shelves = useMemo<DiscoverShelf[]>(() => {
     if (loading) return [];
-    if (apiPosts.length === 0) return DISCOVER_SHELVES;
+    if (apiPosts.length === 0) return [];
 
-    const dynamicOutfits = apiPosts.map((p, idx) => mapApiPostToShelfOutfit(p, idx));
+    const dynamicOutfits = apiPosts.map((p) => mapApiPostToShelfOutfit(p));
 
+    // 1. Most popular: ranked by real likes and shares from the community
     const topDraped = [...dynamicOutfits]
-      .sort((a, b) => b.likesCount + b.drapesCount - (a.likesCount + a.drapesCount))
+      .sort((a, b) => b.likesCount + b.sharesCount - (a.likesCount + a.sharesCount))
       .slice(0, 20)
       .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
+    // 2. Recent Drops (sorted by newest)
     const recentDrops = [...dynamicOutfits].slice(0, 15);
-    const mostLiked = [...dynamicOutfits].sort((a, b) => b.likesCount - a.likesCount).slice(0, 15);
-    const mostShared = [...dynamicOutfits].sort((a, b) => b.sharesCount - a.sharesCount).slice(0, 15);
 
+    // 3. Most Liked (Hall of Fame)
+    const mostLiked = dynamicOutfits.filter((o) => o.likesCount > 0).sort((a, b) => b.likesCount - a.likesCount).slice(0, 15);
+
+    // 4. Most Shared
+    const mostShared = dynamicOutfits.filter((o) => o.sharesCount > 0).sort((a, b) => b.sharesCount - a.sharesCount).slice(0, 15);
+
+    // 5. Group by distinct categories in API posts (e.g. Sarees, Ethnic Wear, Menswear...)
     const categoryMap = new Map<string, ShelfOutfit[]>();
     for (const outfit of dynamicOutfits) {
       const cat = outfit.category || "Runway Edit";
@@ -226,14 +225,14 @@ export function useDynamicDiscover(token?: string | null) {
       categoryMap.get(cat)!.push(outfit);
     }
 
-    const dynamicShelves: DiscoverShelf[] = [
+    const baseShelves: DiscoverShelf[] = [
       {
         id: "shelf_top_draped",
-        title: "Top 20 Most Draped Outfits of the Month",
-        subtitle: "Real avatar try-on popularity rank computed over the last 30 days.",
-        badge: "Official Rank",
+        title: "Most popular right now",
+        subtitle: "Ranked by likes and shares from the Threadflank community.",
+        badge: "Popular",
         category: "trending",
-        items: topDraped.length >= 3 ? topDraped : DISCOVER_SHELVES[0].items,
+        items: topDraped,
       },
       {
         id: "shelf_recent_drops",
@@ -241,7 +240,7 @@ export function useDynamicDiscover(token?: string | null) {
         subtitle: "Just dropped across partner atelier collections.",
         badge: "New Release",
         category: "launches",
-        items: recentDrops.length >= 3 ? recentDrops : DISCOVER_SHELVES[3].items,
+        items: recentDrops,
       },
       {
         id: "shelf_most_liked",
@@ -249,7 +248,7 @@ export function useDynamicDiscover(token?: string | null) {
         subtitle: "High-fashion statements voted by Threadflank stylists.",
         badge: "Trending Love",
         category: "liked",
-        items: mostLiked.length >= 3 ? mostLiked : DISCOVER_SHELVES[5].items,
+        items: mostLiked,
       },
       {
         id: "shelf_most_shared",
@@ -257,31 +256,45 @@ export function useDynamicDiscover(token?: string | null) {
         subtitle: "The most sent outfit cards across group chats and twin circles.",
         badge: "Viral Loop",
         category: "shared",
-        items: mostShared.length >= 3 ? mostShared : DISCOVER_SHELVES[4].items,
+        items: mostShared,
       },
     ];
 
-    categoryMap.forEach((items, catName) => {
-      if (items.length >= 2) {
+    // A shelf with nothing in it is hidden rather than padded with demo outfits.
+    const dynamicShelves = baseShelves.filter((shelf) => shelf.items.length > 0);
+
+    // One shelf per category the admin set up, in the admin's order. A category with nothing in it is skipped.
+    if (adminCategories.length > 0) {
+      for (const cat of adminCategories) {
+        const items = dynamicOutfits.filter((o) => slugOf(o.category) === cat.slug);
+        if (items.length === 0) continue;
         dynamicShelves.push({
-          id: `shelf_cat_${catName.toLowerCase().replace(/[^a-z0-9]/g, "_")}`,
-          title: `${catName} Collection`,
-          subtitle: `Curated ${catName.toLowerCase()} runway pieces for your digital twin.`,
-          badge: "Curated Edit",
-          category: catName.toLowerCase(),
+          id: `shelf_cat_${cat.slug}`,
+          title: cat.name,
+          subtitle: `${items.length} ${items.length === 1 ? "piece" : "pieces"} in ${cat.name}`,
+          badge: "Category",
+          category: cat.slug,
           items,
         });
       }
-    });
-
-    if (dynamicShelves.length < 8) {
-      const existingIds = new Set(dynamicShelves.map((s) => s.id));
-      const extras = DISCOVER_SHELVES.filter((s) => !existingIds.has(s.id));
-      return [...dynamicShelves, ...extras];
+    } else {
+      // No categories set up yet: group by what the pieces themselves say.
+      categoryMap.forEach((items, catName) => {
+        if (items.length >= 2) {
+          dynamicShelves.push({
+            id: `shelf_cat_${slugOf(catName)}`,
+            title: catName,
+            subtitle: `${items.length} pieces in ${catName}`,
+            badge: "Category",
+            category: slugOf(catName),
+            items,
+          });
+        }
+      });
     }
 
     return dynamicShelves;
-  }, [loading, apiPosts]);
+  }, [loading, apiPosts, adminCategories]);
 
   // Dynamic Category Pills for search & filter
   const categories = useMemo(() => {
@@ -300,11 +313,16 @@ export function useDynamicDiscover(token?: string | null) {
       { id: "shared", label: "Shared" },
     ];
 
-    const dynamic = Array.from(set).map((cat) => ({
-      id: cat,
-      label: cat.charAt(0).toUpperCase() + cat.slice(1),
-    }));
+    const nameBySlug = new Map(adminCategories.map((c) => [c.slug, c.name]));
+    const orderOf = (slug: string) => {
+      const i = adminCategories.findIndex((c) => c.slug === slug);
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    const dynamic = Array.from(set)
+      .sort((a, b) => orderOf(a) - orderOf(b))
+      .map((cat) => ({ id: cat, label: nameBySlug.get(cat) ?? cat.charAt(0).toUpperCase() + cat.slice(1) }));
 
+    // Merge without duplicates
     const seen = new Set(standard.map((s) => s.id));
     for (const d of dynamic) {
       if (!seen.has(d.id)) {
@@ -314,16 +332,17 @@ export function useDynamicDiscover(token?: string | null) {
     }
 
     return standard;
-  }, [shelves]);
+  }, [shelves, adminCategories]);
 
   return {
     loading,
-    refetch: loadData,
     biddingWinners,
+    promotedIsAuction: promoted.isAuction,
     brandsDirectory,
     shelves,
     categories,
     apiPostsCount: apiPosts.length,
-    apiBrandsCount: apiBrands.length,
+    apiBrandsCount: showcase.length,
+    refetch,
   };
 }

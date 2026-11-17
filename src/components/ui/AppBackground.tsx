@@ -14,7 +14,7 @@ export function AppBackground({ variant = "app" }: { variant?: "app" | "auth" })
       <Svg width={width} height={height}>
         <Defs>
           <RadialGradient id="top" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#6645eb" stopOpacity={strong ? 0.42 : 0.34} />
+            <Stop offset="0" stopColor="#6645eb" stopOpacity={strong ? 0.42 : 0.22} />
             <Stop offset="1" stopColor="#6645eb" stopOpacity={0} />
           </RadialGradient>
           <RadialGradient id="left" cx="50%" cy="50%" r="50%">

@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, PenLine, Shirt, Sparkles, Users } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { HEADER_SHELL } from "@/components/layout/Screen";
 import { AppBackground } from "@/components/ui/AppBackground";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +33,7 @@ const nameOf = (p: Person) => (p.isSelf ? "You" : p.name);
 export default function DrapeScreen() {
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
-  const params = useLocalSearchParams<{ image?: string; brand?: string; title?: string; item?: string; type?: string; person?: string }>();
+  const params = useLocalSearchParams<{ image?: string; brand?: string; title?: string; item?: string; type?: string; category?: string; piece?: string; garmentUrl?: string; person?: string }>();
   const { people } = usePeople();
   const wardrobe = useWardrobe();
   const wardrobeItems = useMemo(() => wardrobe.data ?? [], [wardrobe.data]);
@@ -41,7 +42,7 @@ export default function DrapeScreen() {
   const { data: wallet } = useWallet();
   const setCredits = useSetCreditBalance();
   const { twin, save: saveTwin } = useTwin();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   const initialPerson = params.person || SELF_ID;
   const [selectedIds, setSelectedIds] = useState<string[]>([initialPerson]);
@@ -66,18 +67,24 @@ export default function DrapeScreen() {
     void saveTwin({ backgroundId: id }).catch(() => undefined);
   };
 
-  // ─── A garment passed in from Discover (?image=), the Wardrobe (?item=) or Trending ──
+  // ─── A garment passed in from Discover or a brand store (?image=), the Wardrobe (?item=) or Trending ──
+  // Same rules as the web: the garment type comes from ?type= or the piece's category, and ?piece= credits the brand.
   const preload = useMemo((): Outfit | null => {
     const item = wardrobeItems.find((i) => i.id === params.item);
     if (item) return outfitFromItem(item);
-    if (!params.image) return null;
+    const image = params.image || params.garmentUrl;
+    if (!image) return null;
+    const rawType = (params.type || params.category || "").toLowerCase();
+    const type =
+      /bottom|lower|pant|trouser|jean|skirt/.test(rawType) ? "lower_body" : /top|upper|shirt|hoodie|jacket/.test(rawType) ? "upper_body" : "dresses";
     return {
       source: "link",
       label: params.title || (params.brand ? `${params.brand} Look` : "Discover Look"),
-      preview: params.image,
-      type: params.type === "lower_body" ? "lower_body" : params.type === "upper_body" ? "upper_body" : "dresses",
+      preview: image,
+      type,
+      productId: params.piece || undefined,
     };
-  }, [params.item, params.image, params.title, params.brand, params.type, wardrobeItems]);
+  }, [params.item, params.image, params.garmentUrl, params.title, params.brand, params.type, params.category, params.piece, wardrobeItems]);
 
   const [preloaded, setPreloaded] = useState<string | null>(null);
   useEffect(() => {
@@ -173,7 +180,7 @@ export default function DrapeScreen() {
   return (
     <View style={styles.fill}>
       <AppBackground />
-      <View style={{ paddingTop: insets.top }}>
+      <View style={[{ paddingTop: insets.top }, HEADER_SHELL]}>
         <AppHeader />
       </View>
       <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: dockBottom + 72 }}>
@@ -275,22 +282,29 @@ export default function DrapeScreen() {
         </View>
       </ScrollView>
 
-      {/* The Drape button, docked above the tab bar. Out of credits, it becomes "Get credits". */}
+      {/* The Drape button, docked above the tab bar as on the web. It sits on a solid backing so a
+          disabled button dims instead of showing the page through it; the reason it is disabled is
+          read out to screen readers, as the web gives it as a tooltip. */}
       <View style={[styles.dock, { bottom: dockBottom }]} pointerEvents="box-none">
-        {!running && blocker ? (
-          <AppText variant="xs" color={colors.subtle} align="center" style={styles.blocker}>
-            {blocker}
-          </AppText>
-        ) : null}
-        {!running && shortOfCredits ? (
-          <Button size="lg" fullWidth icon={Sparkles} onPress={() => router.push("/credits")}>
-            {copy.credits.buy}
-          </Button>
-        ) : (
-          <Button size="lg" fullWidth icon={running ? undefined : Sparkles} loading={running} disabled={!canRun} onPress={generate}>
-            {running ? "Draping…" : `${isGroup ? "Drape group look" : "Drape it"}  ·  ${copy.credits.cost(cost)}`}
-          </Button>
-        )}
+        <View style={styles.dockBacking}>
+          {!running && shortOfCredits ? (
+            <Button size="lg" fullWidth icon={Sparkles} onPress={() => router.push("/credits")}>
+              {copy.credits.buy}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              fullWidth
+              icon={running ? undefined : Sparkles}
+              loading={running}
+              disabled={!canRun}
+              onPress={generate}
+              accessibilityLabel={!running && blocker ? blocker : undefined}
+            >
+              {running ? "Draping…" : `${isGroup ? "Drape group look" : "Drape it"}  ·  ${copy.credits.cost(cost)}`}
+            </Button>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -303,5 +317,5 @@ const styles = StyleSheet.create({
   errorBody: { gap: 6 },
   underline: { textDecorationLine: "underline" },
   dock: { position: "absolute", left: GUTTER - 4, right: GUTTER - 4, gap: 6 },
-  blocker: { backgroundColor: "rgba(1,2,20,0.75)", alignSelf: "center", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, overflow: "hidden" },
+  dockBacking: { borderRadius: 999, backgroundColor: colors.canvas, shadowColor: "#000", shadowOpacity: 0.6, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 10 },
 });

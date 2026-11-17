@@ -15,6 +15,7 @@ import type { WardrobeItem } from "@/features/workspace/api";
 import { errorMessage } from "@/lib/api/client";
 import { pickImage } from "@/lib/media";
 import { colors, radius } from "@/theme";
+import { useGridTiles } from "@/lib/useGridTiles";
 import { fetchGarmentImage, hostOf, outfitFromItem } from "../api";
 import type { Outfit, OutfitSource } from "../types";
 
@@ -51,6 +52,7 @@ export function OutfitPicker({
   const [linkBusy, setLinkBusy] = useState(false);
   const [linkError, setLinkError] = useState("");
   const [category, setCategory] = useState(initialCategory && wardrobe.some((i) => i.category === initialCategory) ? initialCategory : "All");
+  const grid = useGridTiles(4, 6, 3 / 4);
   const [described, setDescribed] = useState(value?.source === "describe" ? value.prompt ?? "" : "");
   const kinds = slotType === undefined ? ETHNIC_GARMENTS : slotType === null ? [] : ETHNIC_GARMENTS.filter((k) => k.category === slotType);
 
@@ -163,8 +165,9 @@ export function OutfitPicker({
               </ScrollView>
             )}
             <ScrollView style={styles.itemsScroll} nestedScrollEnabled showsVerticalScrollIndicator={false}>
-              <View style={styles.items}>
-                {shownItems.map((i) => {
+              <View style={styles.items} onLayout={grid.onLayout}>
+                {grid.ready &&
+                  shownItems.map((i) => {
                   const active = value?.itemId === i.id;
                   return (
                     <Pressable
@@ -172,7 +175,7 @@ export function OutfitPicker({
                       onPress={() => onChange(active ? null : outfitFromItem(i))}
                       accessibilityLabel={i.name}
                       accessibilityState={{ selected: active }}
-                      style={[styles.item, active && styles.itemOn]}
+                      style={[styles.item, grid.tile, active && styles.itemOn]}
                     >
                       <Photo src={i.image} alt={i.name} fit="contain" style={StyleSheet.absoluteFill} />
                       <View style={styles.itemLabel}>
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
   chips: { gap: 6 },
   itemsScroll: { maxHeight: 220 },
   items: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  item: { width: "23.5%", aspectRatio: 3 / 4, borderRadius: radius.md, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 2, borderColor: "transparent" },
+  item: { borderRadius: radius.md, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 2, borderColor: "transparent" },
   itemOn: { borderColor: "rgba(255,255,255,0.9)" },
   itemLabel: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 4, paddingVertical: 3, backgroundColor: "rgba(0,0,0,0.55)" },
   tiny: { fontSize: 10 },

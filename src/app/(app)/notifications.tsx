@@ -45,7 +45,7 @@ export default function NotificationsScreen() {
           data={items}
           keyExtractor={(n) => n.id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refetch()} tintColor={colors.accentBright} colors={[colors.accentBright]} progressBackgroundColor={colors.surface} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refetch()} tintColor={colors.accentBright} colors={[colors.accentBright]} progressBackgroundColor={colors.surface} />}
           ListEmptyComponent={<EmptyState icon={Bell} title="You're all caught up." description="Circle invites, event updates and stylist feedback show up here." style={styles.empty} />}
           renderItem={({ item: n }) => (
             <Pressable onPress={() => open(n)} style={({ pressed }) => [styles.item, !n.readAt && styles.unread, pressed && styles.pressed]}>

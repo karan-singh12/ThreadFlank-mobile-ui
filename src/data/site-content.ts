@@ -68,7 +68,6 @@ export const pricingContent = {
       `${credits} AI looks (1 credit each)`,
       "Credits never expire",
       "Group looks, poses & makeup edits",
-      `Motion videos (${videoCost} credits each)`,
       "Failed renders are refunded",
     ],
     looks: "looks",
@@ -114,7 +113,7 @@ export const pricingContent = {
     },
     {
       q: "Who can be in my twin circle?",
-      a: `Up to ${MEMBER_LIMIT} people close to you — a partner, family or friends — each with their own selfie and body details. A look can show you and one of them together. You need their permission to add their photo.`,
+      a: `One person close to you — a partner, family member or friend — with their own selfie and body details. A look can show you and one of them together. You need their permission to add their photo.`,
     },
     {
       q: "How do I pay?",
@@ -132,7 +131,7 @@ export const contactContent = {
   description: "Questions, feedback or a brand partnership — we read everything.",
   topics: [
     { value: "support", label: "Help with my account" },
-    { value: "billing", label: "Plans & billing" },
+    { value: "billing", label: "Credits & billing" },
     { value: "brands", label: "Brand partnership" },
     { value: "privacy", label: "Privacy & data" },
     { value: "feedback", label: "Feedback" },
@@ -200,10 +199,9 @@ export const termsContent = (brandName: string) => ({
       ],
     },
     {
-      heading: "7. Plans and payments",
+      heading: "7. Credits and payments",
       body: [
-        "Paid plans renew automatically until cancelled. You can cancel at any time and keep access until the end of the paid period. Prices are shown in Indian rupees and include applicable taxes unless stated otherwise.",
-        "Lifetime plans cover the Pro features for as long as the service operates.",
+        "New accounts get a small number of free AI looks. After that you buy credit packs as one-time payments: there is no subscription and nothing renews automatically. Each generated image uses one credit, credits do not expire, and credits for a failed render are returned. Prices are shown in Indian rupees and include applicable taxes unless stated otherwise.",
       ],
     },
     {

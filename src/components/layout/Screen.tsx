@@ -80,7 +80,7 @@ export function Screen({
   return (
     <View style={styles.fill}>
       <AppBackground variant={background} />
-      <View style={{ paddingTop: insets.top }}>{header}</View>
+      <View style={[{ paddingTop: insets.top }, header ? HEADER_SHELL : null]}>{header}</View>
       {keyboard ? (
         <KeyboardAvoidingView style={styles.fill} behavior="padding">
           {content}
@@ -96,3 +96,10 @@ const styles = StyleSheet.create({
   fill: { flex: 1 },
   padded: { paddingHorizontal: GUTTER, paddingTop: 8, gap: 20 },
 });
+
+/** The web app header's bar: the canvas at 85% with a hairline underneath, from the status bar down. */
+export const HEADER_SHELL = {
+  backgroundColor: "rgba(1,2,20,0.85)",
+  borderBottomWidth: StyleSheet.hairlineWidth,
+  borderBottomColor: "rgba(255,255,255,0.08)",
+} as const;

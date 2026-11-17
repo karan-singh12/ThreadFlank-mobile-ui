@@ -3,7 +3,7 @@ import { Link, router } from "expo-router";
 import { AtSign, Mail } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { StyleSheet, Text, View, type TextInput } from "react-native";
+import { StyleSheet, Text, View, type TextInputInstance } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -26,9 +26,9 @@ export default function SignupScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
-  const confirmRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInputInstance>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
+  const confirmRef = useRef<TextInputInstance>(null);
 
   const {
     control,

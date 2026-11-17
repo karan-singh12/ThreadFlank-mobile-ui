@@ -1,7 +1,7 @@
 import { ETHNIC_GARMENTS } from "@/data/garment-kinds";
 import { DRAPE_SLOTS, GROUP_POSTURES, SKIN_TONES, type DrapeSlot, type GroupPosture } from "@/data/studio-content";
 import type { PoseId } from "@/data/look-edits";
-import { baseImage, type Person } from "@/features/workspace/hooks";
+import { baseImage, hasBodyTwin, type Person } from "@/features/workspace/hooks";
 import type { StudioScene, WardrobeItem } from "@/features/workspace/api";
 import { apiRequest, ApiError } from "@/lib/api/client";
 import { assetUrl, WEB_ORIGIN } from "@/lib/api/config";
@@ -102,6 +102,7 @@ async function pieceFor(slot: DrapeSlot, outfit: Outfit) {
     description: isDescribed ? outfit.prompt : undefined,
     kind: kind?.id,
     drape: kind?.drape,
+    brandProductId: outfit.productId,
   };
 }
 
@@ -123,6 +124,7 @@ async function buildGroupPayload({ people, members, posture, scene, styling }: G
         name: (p.isSelf ? p.name || "You" : p.name).slice(0, 60),
         relation: p.isSelf ? "You" : p.relation || undefined,
         twinImage: await sendable(baseImage(p)!, 1280),
+        bodyTwin: hasBodyTwin(p) || undefined,
         body: {
           gender: p.gender || undefined,
           age: p.age || undefined,

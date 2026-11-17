@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   personText: { flex: 1, minWidth: 0 },
   pill: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 },
   btn: { height: 32, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, borderRadius: 12 },
-  btnPrimary: { backgroundColor: colors.accent },
+  btnPrimary: { backgroundColor: colors.accentDeep, borderWidth: 1, borderColor: "rgba(127,98,246,0.45)" },
   btnGhost: { backgroundColor: "rgba(255,255,255,0.1)" },
   dim: { opacity: 0.6 },
   respond: { flexDirection: "row", gap: 6 },

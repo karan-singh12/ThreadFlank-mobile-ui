@@ -19,7 +19,7 @@ type ChipProps = {
 
 /** Pill chip; selected uses the web's off-white `.chip-on` with dark text. */
 export function Chip({ label, selected = false, onPress, icon: Icon, size = "md", leading, disabled, style }: ChipProps) {
-  const height = size === "sm" ? 30 : 36;
+  const height = size === "sm" ? 34 : 38;
   const color = selected ? colors.chipOnText : colors.subtle;
   return (
     <Pressable
@@ -103,7 +103,8 @@ export function TabSwitch<T extends string>({ value, onChange, options, style }:
 const styles = StyleSheet.create({
   chip: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.pill, overflow: "visible" },
   round: { borderRadius: radius.pill },
-  idle: { borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
+  // The web's .glass-pill: a faint white fill with a 1px light rim.
+  idle: { borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(255,255,255,0.07)" },
   disabled: { opacity: 0.4 },
   pressed: { opacity: 0.8 },
   scrollRow: { gap: 8, paddingRight: 16 },
@@ -114,8 +115,8 @@ const styles = StyleSheet.create({
     gap: 4,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-    backgroundColor: "rgba(11,11,30,0.7)",
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.07)",
   },
-  tab: { flex: 1, height: 34, borderRadius: radius.pill, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 8 },
+  tab: { flex: 1, height: 40, borderRadius: radius.pill, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 8 },
 });

@@ -61,6 +61,18 @@ export interface BrandCatalogItem {
   collection: string;
 }
 
+export interface BrandDropItem {
+  id: string;
+  title: string;
+  collectionName: string;
+  description?: string;
+  launchDate: string;
+  waitlistCount: number;
+  status: "scheduled" | "live" | "completed";
+  bannerUrl: string;
+  joined: boolean;
+}
+
 export interface BrandDetail {
   id: string;
   name: string;
@@ -78,6 +90,8 @@ export interface BrandDetail {
   websiteUrl: string;
   collections: string[];
   catalog: BrandCatalogItem[];
+  /** Upcoming and live drops from the brand panel. */
+  drops?: BrandDropItem[];
 }
 
 export const TOP_BIDDING_WINNERS: BiddingWinnerBrand[] = [

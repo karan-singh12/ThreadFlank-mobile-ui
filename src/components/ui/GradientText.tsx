@@ -1,8 +1,12 @@
-import MaskedView from "@react-native-masked-view/masked-view";
+import MaskedViewBase from "@react-native-masked-view/masked-view";
+import type { ComponentType, ReactElement, ReactNode } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { gradients } from "@/theme";
 import { AppText, type AppTextProps } from "./AppText";
+
+// The package types it as a class extending View, which React Native 0.88 no longer types as a class.
+const MaskedView = MaskedViewBase as unknown as ComponentType<{ maskElement: ReactElement; children?: ReactNode }>;
 
 type Tone = "chrome" | "chromeSoft" | "chromeDim";
 

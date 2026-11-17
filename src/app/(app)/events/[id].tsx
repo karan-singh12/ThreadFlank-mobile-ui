@@ -104,7 +104,7 @@ export default function EventScreen() {
   for (let i = 0; i < event.plans.length; i += 2) rows.push(event.plans.slice(i, i + 2));
 
   return (
-    <Screen header={header} onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+    <Screen header={header} onRefresh={() => void query.refetch()} refreshing={query.isRefetching}>
       <View style={styles.titleBlock}>
         <GradientText variant="h2">{event.title}</GradientText>
         <View style={styles.meta}>

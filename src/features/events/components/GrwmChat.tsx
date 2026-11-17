@@ -1,6 +1,6 @@
 import { Send } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View, type ScrollViewInstance } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Photo } from "@/components/ui/Photo";
@@ -18,7 +18,7 @@ export function GrwmChat({ groupId }: { groupId: string }) {
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
 
   useEffect(() => {
     if (!token) return;

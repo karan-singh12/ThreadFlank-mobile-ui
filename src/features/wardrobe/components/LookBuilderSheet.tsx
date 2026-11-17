@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Bookmark, Check, Shirt } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type HostInstance } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
@@ -28,7 +28,7 @@ const OCCASION_OPTIONS = OCCASIONS.map((o) => ({ value: o.id, label: o.label }))
 export function LookBuilderSheet({ items, open, onClose }: { items: WardrobeItem[]; open: boolean; onClose: () => void }) {
   const { token } = useAuth();
   const looksCache = useLooksCache();
-  const boardRef = useRef<View>(null);
+  const boardRef = useRef<HostInstance>(null);
   const [name, setName] = useState("");
   const [occasion, setOccasion] = useState<string>(OCCASIONS[0].id);
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
