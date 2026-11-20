@@ -1,6 +1,7 @@
 import { CircleAlert, CircleCheck } from "lucide-react-native";
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import { Animated, Pressable, StyleSheet } from "react-native";
+import { Animated, StyleSheet } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radius } from "@/theme";
 import { AppText } from "./AppText";

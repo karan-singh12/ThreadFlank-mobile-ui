@@ -1,7 +1,8 @@
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { Calendar, X } from "lucide-react-native";
 import { useState } from "react";
-import { Platform, Pressable, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors, radius } from "@/theme";
 import { AppText } from "./AppText";
 import { Button } from "./Button";

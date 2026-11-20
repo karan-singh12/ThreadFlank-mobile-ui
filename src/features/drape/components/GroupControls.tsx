@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { Check, ChevronRight, Crown, Footprints, Gem, Glasses, Layers, Plus, Shirt, ShoppingBag, Sparkles, X, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { Chip } from "@/components/ui/Chip";

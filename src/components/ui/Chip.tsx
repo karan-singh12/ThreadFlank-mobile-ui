@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors, gradients, radius, shadows } from "@/theme";
 import { AppText } from "./AppText";
 

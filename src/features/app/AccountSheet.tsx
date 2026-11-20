@@ -1,6 +1,7 @@
 import { router, type Href } from "expo-router";
 import { ChevronRight, Coins, LogOut } from "lucide-react-native";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { NAV_ICONS } from "@/components/navigation/navIcons";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";

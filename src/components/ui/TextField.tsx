@@ -1,7 +1,8 @@
 import type { LucideIcon } from "lucide-react-native";
 import { Eye, EyeOff, Lock } from "lucide-react-native";
 import { forwardRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, TextInput, View, type StyleProp, type TextInputInstance, type TextInputProps, type ViewStyle } from "react-native";
+import { StyleSheet, TextInput, View, type StyleProp, type TextInputInstance, type TextInputProps, type ViewStyle } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors, fonts, radius } from "@/theme";
 import { AppText } from "./AppText";
 

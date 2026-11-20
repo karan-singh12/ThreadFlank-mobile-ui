@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { CalendarHeart, CheckCircle2, MapPin, Plus, Radio, Users } from "lucide-react-native";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";

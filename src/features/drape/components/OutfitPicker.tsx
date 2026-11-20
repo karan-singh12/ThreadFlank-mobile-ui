@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { Camera, ImagePlus, Link2, PenLine, Shirt, Sparkles, X, type LucideIcon } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Chip, Segmented, TabSwitch } from "@/components/ui/Chip";

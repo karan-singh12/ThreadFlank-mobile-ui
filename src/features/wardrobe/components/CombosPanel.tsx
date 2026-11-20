@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { Bookmark, Check, Shirt, Shuffle, Sparkles } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { GlassCard } from "@/components/ui/GlassCard";

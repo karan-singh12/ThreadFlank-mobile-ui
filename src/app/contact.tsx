@@ -1,7 +1,8 @@
 import { useLocalSearchParams } from "expo-router";
 import { CheckCircle2, Handshake, Mail, Send, ShieldCheck, type LucideIcon } from "lucide-react-native";
 import { useState } from "react";
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { StackHeader } from "@/components/layout/StackHeader";
 import { AppText } from "@/components/ui/AppText";

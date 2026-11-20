@@ -1,6 +1,7 @@
 import { Check } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors } from "@/theme";
 import { AppText } from "./AppText";
 

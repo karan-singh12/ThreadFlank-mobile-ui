@@ -1,6 +1,7 @@
 import { Check, ChevronDown } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors, radius } from "@/theme";
 import { AppText } from "./AppText";
 import { Sheet } from "./Sheet";
