@@ -1,6 +1,7 @@
 import { Check, ChevronDown, LayoutGrid, Rows3, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Sheet } from "@/components/ui/Sheet";
 import { colors, fonts, radius } from "@/theme";

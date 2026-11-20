@@ -21,8 +21,8 @@
     "android": {
       "package": "com.threadflank.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0b090d",
-        "foregroundImage": "./assets/icon.png"
+        "backgroundColor": "#010214",
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -47,9 +47,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
-          "imageWidth": 180,
+          "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#0b090d"
+          "backgroundColor": "#010214"
         }
       ],
       "expo-sharing",

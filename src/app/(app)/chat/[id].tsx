@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, LogOut, MoreVertical, Phone, Video } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Sheet } from "@/components/ui/Sheet";

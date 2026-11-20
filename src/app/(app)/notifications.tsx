@@ -1,10 +1,12 @@
 import { Bell, CheckCheck } from "lucide-react-native";
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { StackHeader } from "@/components/layout/StackHeader";
 import { AppText } from "@/components/ui/AppText";
-import { EmptyState, Loader } from "@/components/ui/States";
+import { SkeletonRows } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/States";
 import { useNotifications } from "@/features/notifications/hooks";
 import type { AppNotification } from "@/features/social/api";
 import { ago } from "@/lib/format";
@@ -39,7 +41,7 @@ export default function NotificationsScreen() {
       }
     >
       {loading ? (
-        <Loader />
+        <SkeletonRows count={7} style={styles.skeleton} />
       ) : (
         <FlatList
           data={items}
@@ -71,6 +73,7 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   readAll: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
+  skeleton: { paddingHorizontal: GUTTER, paddingTop: 16 },
   list: { paddingTop: 4 },
   empty: { marginHorizontal: GUTTER, marginTop: 24 },
   item: { flexDirection: "row", alignItems: "flex-start", gap: 12, paddingHorizontal: GUTTER, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.lineSoft },

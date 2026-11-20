@@ -1,6 +1,7 @@
 import { Send } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View, type ScrollViewInstance } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View, type ScrollViewInstance } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Photo } from "@/components/ui/Photo";

@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { LayoutGrid } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Photo } from "@/components/ui/Photo";
 import { discoverContent } from "@/data/app-content";

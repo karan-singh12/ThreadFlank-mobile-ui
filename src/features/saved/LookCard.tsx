@@ -1,6 +1,7 @@
 import { Calendar, Film, Heart, MessageSquareText, Trash2 } from "lucide-react-native";
 import { memo } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Photo } from "@/components/ui/Photo";
 import { OCCASIONS } from "@/data/studio-content";

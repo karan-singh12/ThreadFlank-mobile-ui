@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Check, Send, Users } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/features/auth/AuthProvider";

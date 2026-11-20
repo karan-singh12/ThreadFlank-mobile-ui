@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Camera, PenLine, Shirt, Sparkles, Users } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View, type ScrollViewInstance } from "react-native";
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HEADER_SHELL } from "@/components/layout/Screen";
 import { AppBackground } from "@/components/ui/AppBackground";

@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { memo } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Photo } from "@/components/ui/Photo";
 import type { WardrobeItem } from "@/features/workspace/api";

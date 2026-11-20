@@ -3,7 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ArrowRight, CheckCircle2, ExternalLink, Search, SearchX, Share2, ShieldCheck, Shirt, ShoppingBag, X } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, Share, StyleSheet, TextInput, View } from "react-native";
+import { Linking, RefreshControl, ScrollView, Share, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +12,7 @@ import { Chip } from "@/components/ui/Chip";
 import { GradientText } from "@/components/ui/GradientText";
 import { Photo } from "@/components/ui/Photo";
 import { Sheet } from "@/components/ui/Sheet";
+import { Skeleton, SkeletonChips, SkeletonHeading, SkeletonLines } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/States";
 import { type ShelfOutfit } from "@/data/discover-shelves";
 import { AppHeader } from "@/features/app/AppHeader";
@@ -61,9 +63,7 @@ export default function DiscoverScreen() {
   if (loading) {
     return (
       <Screen header={<AppHeader />} scroll={false} padded={false} tabBar>
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accentBright} />
-        </View>
+        <DiscoverSkeleton />
       </Screen>
     );
   }
@@ -192,6 +192,43 @@ export default function DiscoverScreen() {
 
       <OutfitQuickSheet outfit={selectedOutfit} onClose={() => setSelectedOutfit(null)} />
     </Screen>
+  );
+}
+
+/* ── Loading: the page in outline, as the web's DiscoverSkeleton ── */
+function DiscoverSkeleton() {
+  return (
+    <View style={styles.skeleton} accessibilityLabel="Loading Discover">
+      <SkeletonHeading style={styles.skPad} />
+      <View style={styles.skPad}>
+        <Skeleton height={48} radius={radius.pill} />
+      </View>
+      <View style={[styles.skRings, styles.skPad]}>
+        {Array.from({ length: 5 }, (_, i) => (
+          <View key={i} style={styles.skRing}>
+            <Skeleton width={64} height={64} radius={32} />
+            <Skeleton width={52} height={8} radius={4} />
+          </View>
+        ))}
+      </View>
+      <SkeletonChips count={5} style={styles.skPad} />
+      {[0, 1].map((shelf) => (
+        <View key={shelf} style={styles.skShelf}>
+          <View style={[styles.skPad, styles.skShelfHead]}>
+            <Skeleton width={64} height={10} radius={5} />
+            <Skeleton width="70%" height={22} radius={7} />
+          </View>
+          <View style={styles.skCards}>
+            {[0, 1, 2].map((c) => (
+              <View key={c} style={styles.skCard}>
+                <Skeleton width={172} height={229} radius={18} />
+                <SkeletonLines lines={2} height={10} gap={6} />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -367,7 +404,14 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   flexShrink: { flexShrink: 1 },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
-  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
+  skeleton: { paddingTop: 8, gap: 22, overflow: "hidden" },
+  skPad: { paddingHorizontal: GUTTER },
+  skRings: { flexDirection: "row", gap: 16, overflow: "hidden" },
+  skRing: { alignItems: "center", gap: 8 },
+  skShelf: { gap: 14 },
+  skShelfHead: { gap: 8 },
+  skCards: { flexDirection: "row", gap: 12, paddingLeft: GUTTER, overflow: "hidden" },
+  skCard: { width: 172, gap: 10 },
   scroll: { paddingBottom: TAB_BAR_HEIGHT + 48 },
   header: { gap: 8, paddingHorizontal: GUTTER, paddingTop: 8 },
   search: { marginTop: 10, height: 48, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.04)", paddingHorizontal: 16 },

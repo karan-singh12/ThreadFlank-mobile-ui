@@ -3,7 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ExternalLink, MapPin, Search, SearchX, ShieldCheck, ShoppingBag, Shirt, Sparkles, X } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Linking, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { StackHeader } from "@/components/layout/StackHeader";
@@ -12,7 +13,8 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Photo } from "@/components/ui/Photo";
 import { Select } from "@/components/ui/Select";
-import { EmptyState, ErrorState, Loader } from "@/components/ui/States";
+import { Skeleton, SkeletonChips, SkeletonGrid } from "@/components/ui/Skeleton";
+import { EmptyState, ErrorState } from "@/components/ui/States";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { BrandBanner, BrandLogo, brandAccent } from "@/features/brands/BrandVisuals";
 import { DropsStrip, PieceCard, QuickViewSheet, SectionTitle, drapePiece, likeOf, rupees, type LikeMap } from "@/features/brands/StoreParts";
@@ -42,7 +44,16 @@ export default function BrandStoreScreen() {
   if (query.isLoading) {
     return (
       <Screen header={<StackHeader title="Store" />} scroll={false}>
-        <Loader label="Loading store" />
+        <View style={styles.skeleton} accessibilityLabel="Loading store">
+          <Skeleton height={340} radius={24} />
+          <View style={styles.skStats}>
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} width="48%" height={44} radius={12} />
+            ))}
+          </View>
+          <SkeletonChips count={5} />
+          <SkeletonGrid count={2} />
+        </View>
       </Screen>
     );
   }
@@ -399,9 +410,7 @@ function Store({ store }: { store: ApiStore }) {
   );
 
   const empty = !current ? (
-    <View style={styles.moreRow}>
-      <ActivityIndicator color={colors.subtle} />
-    </View>
+    <SkeletonGrid count={4} />
   ) : current.error ? (
     <AppText variant="sm" color="#fca5a5" align="center" style={styles.emptyPad}>
       {current.error}
@@ -551,4 +560,6 @@ const styles = StyleSheet.create({
   moreRow: { minHeight: 56, alignItems: "center", justifyContent: "center" },
   about: { gap: 12, borderRadius: radius.panel, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)", padding: 16 },
   emptyPad: { paddingVertical: 32 },
+  skeleton: { gap: 20, paddingTop: 4, overflow: "hidden" },
+  skStats: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
 });

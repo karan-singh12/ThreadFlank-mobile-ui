@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { Edit2, Repeat2, Shirt, Tag, Trash2, Undo2 } from "lucide-react-native";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Photo } from "@/components/ui/Photo";

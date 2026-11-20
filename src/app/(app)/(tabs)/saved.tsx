@@ -1,13 +1,15 @@
 import { router, useLocalSearchParams, useScrollToTop } from "expo-router";
 import { Bookmark, CalendarHeart, Filter, Plus, Search, Shirt, X } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, FlatList, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { ErrorState, Loader } from "@/components/ui/States";
+import { Skeleton, SkeletonChips, SkeletonGrid } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/States";
 import { OCCASIONS } from "@/data/studio-content";
 import { AppHeader } from "@/features/app/AppHeader";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -173,7 +175,9 @@ function SavedLooks({ tabs, bottom }: { tabs: ReactElement; bottom: number }) {
     return (
       <View style={styles.pad}>
         {tabs}
-        <Loader />
+        <Skeleton height={44} radius={999} />
+        <SkeletonChips count={4} />
+        <SkeletonGrid count={4} ratio={4 / 5} />
       </View>
     );
   }

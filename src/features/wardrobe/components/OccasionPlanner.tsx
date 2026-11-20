@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { Check, Layers, MapPin, Shirt, Sparkles } from "lucide-react-native";
 import { useMemo, useState, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";

@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { ExternalLink, Sparkles } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Chip } from "@/components/ui/Chip";
 import { openExternal } from "@/lib/links";

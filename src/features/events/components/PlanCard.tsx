@@ -1,6 +1,7 @@
 import { Check, Lock, Shirt, Sparkles, Unlock } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { AppText } from "@/components/ui/AppText";
 import { Photo } from "@/components/ui/Photo";
 import { Sheet } from "@/components/ui/Sheet";

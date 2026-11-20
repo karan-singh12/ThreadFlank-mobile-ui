@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { colors } from "@/theme";
 
 type Props = {

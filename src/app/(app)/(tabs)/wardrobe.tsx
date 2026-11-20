@@ -2,7 +2,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useScrollToTop } from "expo-router";
 import { Plus, Search, SearchX, Shirt, X } from "lucide-react-native";
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
@@ -11,7 +12,8 @@ import { Chip, TabSwitch } from "@/components/ui/Chip";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientText } from "@/components/ui/GradientText";
 import { Notice } from "@/components/ui/Notice";
-import { ErrorState, Loader } from "@/components/ui/States";
+import { Skeleton, SkeletonChips, SkeletonGrid } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/States";
 import { WARDROBE_CATEGORIES, wardrobeContent as copy } from "@/data/studio-content";
 import { AppHeader } from "@/features/app/AppHeader";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -130,7 +132,10 @@ function ItemsTab({ tabs, bottom }: { tabs: ReactNode; bottom: number }) {
     return (
       <View style={styles.pad}>
         {tabs}
-        <Loader />
+        <Skeleton height={300} radius={20} />
+        <Skeleton height={48} radius={999} />
+        <SkeletonChips count={4} />
+        <SkeletonGrid count={4} />
       </View>
     );
   }

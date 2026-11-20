@@ -2,14 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Flame, Heart, MessageCircle, Sparkles } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { StackHeader } from "@/components/layout/StackHeader";
 import { AppText } from "@/components/ui/AppText";
 import { Chip } from "@/components/ui/Chip";
 import { GradientText } from "@/components/ui/GradientText";
 import { Photo } from "@/components/ui/Photo";
-import { Loader } from "@/components/ui/States";
+import { SkeletonGrid } from "@/components/ui/Skeleton";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { discoverApi, type ApiBrandPost } from "@/features/discover/api";
 import { drapeParams } from "@/features/discover/model";
@@ -58,7 +59,7 @@ export default function TrendingScreen() {
       )}
 
       {query.isLoading ? (
-        <Loader />
+        <SkeletonGrid count={4} />
       ) : shown.length === 0 ? (
         <AppText variant="sm" color={colors.muted} align="center" style={styles.empty}>
           Nothing trending yet — check Discover for the latest drops.

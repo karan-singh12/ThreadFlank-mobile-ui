@@ -1,7 +1,8 @@
 import { useScrollToTop } from "expo-router";
 import { MessagesSquare, Search, Sparkles, SquarePen, UserMinus, UserPlus, X } from "lucide-react-native";
 import { useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";

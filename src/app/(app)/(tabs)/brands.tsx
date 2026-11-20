@@ -2,7 +2,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ArrowUpRight, CalendarClock, Search, SearchX, ShieldCheck, X } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { AppText } from "@/components/ui/AppText";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { Chip } from "@/components/ui/Chip";
 import { GradientText } from "@/components/ui/GradientText";
 import { Photo } from "@/components/ui/Photo";
 import { Select } from "@/components/ui/Select";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/States";
 import { AppHeader } from "@/features/app/AppHeader";
 import { BrandBanner, BrandLogo, brandAccent, monogram } from "@/features/brands/BrandVisuals";
@@ -161,8 +163,16 @@ export default function BrandsScreen() {
   );
 
   const empty = !current ? (
-    <View style={styles.loading}>
-      <ActivityIndicator color={colors.accentBright} />
+    <View style={styles.skPlates} accessibilityLabel="Loading brands">
+      {[0, 1].map((i) => (
+        <View key={i} style={styles.skPlate}>
+          <Skeleton radius={26} style={styles.skPlateArt} />
+          <View style={styles.plateMeta}>
+            <Skeleton width={64} height={10} radius={5} />
+            <Skeleton width={88} height={14} radius={7} />
+          </View>
+        </View>
+      ))}
     </View>
   ) : current.error ? (
     <EmptyState icon={SearchX} title="We couldn't load brands" description={current.error} action={<Button onPress={() => setReload((n) => n + 1)}>Try again</Button>} />
@@ -319,6 +329,9 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: "row", alignItems: "center" },
   chipRow: { gap: 8, paddingRight: 4 },
   loading: { minHeight: 72, alignItems: "center", justifyContent: "center" },
+  skPlates: { gap: 28 },
+  skPlate: { gap: 0 },
+  skPlateArt: { aspectRatio: 4 / 5 },
   plateWrap: { marginBottom: 28 },
   plate: { borderRadius: 26, overflow: "hidden", backgroundColor: "#0b0c22", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   plateArt: { aspectRatio: 4 / 5 },

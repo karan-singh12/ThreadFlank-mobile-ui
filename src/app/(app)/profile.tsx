@@ -1,7 +1,8 @@
 import { useLocalSearchParams } from "expo-router";
 import { Calendar, MapPin, Pencil, Phone, Scissors, Sparkles, Users } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable } from "@/components/ui/Pressable";
 import { Screen } from "@/components/layout/Screen";
 import { StackHeader } from "@/components/layout/StackHeader";
 import { AppText } from "@/components/ui/AppText";
